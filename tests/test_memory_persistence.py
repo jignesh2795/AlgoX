@@ -67,3 +67,42 @@ def test_temporal_reconstruction_survives_restart(tmp_path):
     assert reopened.reconstruct_as_of(before) == []
     assert [m.id for m in reopened.reconstruct_as_of(during)] == ["M-PERSIST-002"]
     reopened.close()
+
+
+def test_persisted_relations_round_trip(tmp_path):
+    db_path = tmp_path / "memory.sqlite3"
+    store = SQLiteMemoryStore(db_path)
+    evidence = Evidence(
+        id="E-PERSIST-003",
+        source_id="SRC-003",
+        locator="fixture://relations",
+        observed_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+    )
+    store.add_evidence(evidence)
+    store.add_memory(
+        MemoryRecord(
+            id="M-PERSIST-003-A",
+            memory_type="finding",
+            content="candidate approach",
+            created_at=datetime(2026, 1, 2, tzinfo=timezone.utc),
+            evidence_ids=[evidence.id],
+        )
+    )
+    store.add_memory(
+        MemoryRecord(
+            id="M-PERSIST-003-B",
+            memory_type="finding",
+            content="contradicting approach",
+            created_at=datetime(2026, 1, 3, tzinfo=timezone.utc),
+            evidence_ids=[evidence.id],
+        )
+    )
+    store.link_memory(
+        "M-PERSIST-003-A", "contradicts", "M-PERSIST-003-B"
+    )
+    store.close()
+
+    reopened = SQLiteMemoryStore(db_path)
+    memory = reopened.get_memory("M-PERSIST-003-A")
+    assert memory.relations == [("contradicts", "M-PERSIST-003-B")]
+    reopened.close()
