@@ -1,6 +1,6 @@
 # EXP-MEM-0002 — Decision Tracing
 
-Status: **DESIGNED / IMPLEMENTED**
+Status: **IMPLEMENTED — NOT EXECUTED IN THIS SESSION**
 
 ## Hypothesis
 
