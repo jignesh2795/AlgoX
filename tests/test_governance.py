@@ -17,6 +17,7 @@ def test_delta_without_evidence_is_rejected():
     gov = build_governance()
     review = gov.review_delta(KnowledgeDelta("K-1", "ADD", "Claim", "C-1", (), "model proposal"))
     assert review.approved is False
+    assert review.status == "rejected"
     assert "durable knowledge requires evidence" in review.errors
 
 
@@ -24,6 +25,16 @@ def test_delta_with_known_evidence_is_approved():
     gov = build_governance()
     review = gov.review_delta(KnowledgeDelta("K-2", "ADD", "Claim", "C-2", ("E-1",), "verified source"))
     assert review.approved is True
+    assert review.status == "approved"
+
+
+def test_truth_changing_operations_require_explicit_review():
+    gov = build_governance()
+    for operation in ("REFUTE", "QUALIFY", "SUPERSEDE"):
+        review = gov.review_delta(KnowledgeDelta(f"K-{operation}", operation, "Claim", f"C-{operation}", ("E-1",), "changes claim status"))
+        assert review.approved is False
+        assert review.status == "review_required"
+        assert "explicit review required" in review.errors[0]
 
 
 def test_commit_requires_explicit_approval_identity():
