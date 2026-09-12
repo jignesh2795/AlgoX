@@ -94,19 +94,40 @@ These candidates are research targets, not endorsements. Completed items are ret
 - Freqtrade — PX-2023-066
 - Backtrader — PX-2023-067
 - Jesse — PX-2023-068
+- QuantConnect LEAN — PX-2023-074
+- NautilusTrader — PX-2023-075
+- Zipline 3.7 / v4 transition — PX-2023-076
+- Indian broker/API ecosystem — PX-2023-077
 
 ### Follow-up
-- NautilusTrader historical state
-- Zipline historical evolution
-- QuantConnect LEAN historical state
-- financial data infrastructure
-- broker/exchange API abstractions
-- Indian-market open-source ecosystem where historical evidence exists
+- Voyager / Toolformer / Reflexion and agent-evaluation crossover with finance
+- LitGPT and additional model/inference runtimes
+- financial data infrastructure and data-quality systems
+- instrument master / corporate-action infrastructure
+- Indian-market historical broker/API projects at version-specific evidence level
 - execution, reconciliation, fill simulation and risk architecture
+- Indian-market open-source trading systems with demonstrable 2023 release/history evidence
+
+## Historical boundary findings
+
+### LEAN
+LEAN is confirmed as a mature event-driven trading engine with modular data/brokerage/algorithm components. Its value for AlgoX is as a mature reference architecture, not as proof that its design should be copied wholesale.
+
+### NautilusTrader
+NautilusTrader has strong 2023 evidence and is especially valuable for event-driven domain modeling: market data types, order/execution events, risk limits, actors, data catalogs and Rust acceleration were all visible in 2023 releases.
+
+### Zipline
+Zipline's 2023 evidence is valuable primarily as an evolution/failure signal: the maintainer announced a major rewrite after the 3.7 line, demonstrating that mature backtesting infrastructure can accumulate architectural debt that eventually motivates a rewrite.
+
+### Indian broker APIs
+The Indian ecosystem already exposed the essential automation boundary by 2023, but each provider had its own authentication, instrument, order, WebSocket and state semantics. AlgoX should therefore research broker abstraction as a normalization problem with preserved provider-specific semantics, not as a simplistic common-interface problem.
+
+### OpenAlgo temporal classification
+OpenAlgo is intentionally **not classified as a 2023 project** in this index. Its documented 1.0 launch is April 8, 2024. It remains a high-priority 2024 Indian-market research target.
 
 ## Discovery note
 
-The discovery pass has now added additional infrastructure and trading-framework records, but this does not mean 2023 is closed. In particular, Indian-market repositories must be screened by historical evidence rather than by their current popularity. Current projects such as OpenAlgo and related Indian broker integrations are useful discovery leads, but their historical year must be established before being classified as 2023 evidence.
+The discovery pass has added additional infrastructure and trading-framework records, but this does not mean 2023 is closed. Historical year must be established from dated releases, repository history, papers, documentation or other contemporaneous evidence. Current popularity is only a discovery signal.
 
 ## Research rule
 
