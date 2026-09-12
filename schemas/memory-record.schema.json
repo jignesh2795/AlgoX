@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algox.local/schemas/memory-record.schema.json",
+  "title": "AlgoX Memory Record",
+  "type": "object",
+  "required": ["id", "memory_type", "content", "created_at", "provenance", "confidence"],
+  "properties": {
+    "id": {"type": "string"},
+    "memory_type": {"enum": ["working", "episodic", "semantic", "procedural", "source", "meta"]},
+    "content": {"type": "string"},
+    "entities": {"type": "array", "items": {"type": "string"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "valid_from": {"type": ["string", "null"], "format": "date-time"},
+    "valid_to": {"type": ["string", "null"], "format": "date-time"},
+    "superseded_by": {"type": ["string", "null"]},
+    "provenance": {
+      "type": "object",
+      "required": ["evidence_ids"],
+      "properties": {"evidence_ids": {"type": "array", "items": {"type": "string"}}, "source_version": {"type": ["string", "null"]}}
+    },
+    "confidence": {"enum": ["unknown", "low", "medium", "high"]},
+    "status": {"enum": ["active", "superseded", "disputed", "retracted"]},
+    "relations": {"type": "array", "items": {"type": "object", "required": ["type", "target_id"], "properties": {"type": {"enum": ["supports", "contradicts", "qualifies", "extends", "depends_on", "derived_from", "tested_by", "informs"]}, "target_id": {"type": "string"}}}}
+  },
+  "additionalProperties": false
+}
