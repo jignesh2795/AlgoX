@@ -23,6 +23,12 @@ Priority research candidates:
 - ChatDev — multi-agent software development
 - CAMEL — role-playing multi-agent cooperation
 - AutoGen — programmable multi-agent conversations
+- CrewAI — role/task/crew orchestration
+- LangGraph — graph/state-machine agent workflows
+- Semantic Kernel — plugin/function orchestration
+- LiteLLM — model/provider abstraction and routing
+- Vercel AI SDK — application/provider abstraction
+- GPT Researcher — autonomous web research
 - MemGPT — hierarchical memory / virtual context
 - Aider — repository-aware AI coding
 - GPT Engineer — specification-to-code workflow
@@ -50,6 +56,17 @@ Priority research candidates:
 - Freqtrade — crypto trading framework
 - LEAN — event-driven algorithmic trading engine
 - NautilusTrader — high-performance trading architecture
+
+Additional 2023 discovery candidates requiring screening:
+
+- Ragas — early RAG evaluation tooling
+- Instructor — structured LLM output / schema enforcement
+- Guidance — constrained generation / programmatic prompting
+- Griptape — task/tool/pipeline agent framework
+- Marvin — Python-native AI function/tool abstractions
+- Haystack — retrieval and NLP pipeline architecture
+- Guardrails AI — structured output and validation controls
+- AutoGPT Platform — evolution of autonomous-agent product architecture
 
 ## 2024 — infrastructure / controlled agents / RAG / quant AI
 
@@ -149,7 +166,21 @@ synthesis.
 ## Current correction
 
 The earlier 2023 work was broader than the initial shortlist, but it was still
-not sufficient to claim exhaustive historical GitHub discovery. This index makes
-the missing discovery layer explicit. The next research pass should work through
-these candidates chronologically, beginning with 2023, before further storage
-or architecture decisions are treated as final.
+not sufficient to claim exhaustive historical GitHub discovery. The discovery
+index is therefore a living inventory rather than a claim of mathematical
+exhaustiveness. Current GitHub search/topic evidence should be supplemented by
+historical snapshots, release dates, papers and archived trend evidence when
+ranking a project as historically significant.
+
+New primary records added in the current pass:
+
+- PX-2023-055 — LiteLLM
+- PX-2023-056 — CrewAI
+- PX-2023-057 — LangGraph
+- PX-2023-058 — GPT Researcher
+- PX-2023-059 — Semantic Kernel
+- PX-2023-060 — Vercel AI SDK
+
+These are initial research records, not completed project studies. They must go
+through the same evidence and capability-extraction process as the earlier
+PX-2023 records before the 2023 synthesis is considered final.
