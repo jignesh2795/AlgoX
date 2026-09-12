@@ -1,4 +1,4 @@
-"""CLI entry point for EXP-MEM-0001.
+"""CLI entry point for memory-engine benchmark workloads.
 
 Usage from the repository root:
     python experiments/memory_benchmark.py
@@ -8,11 +8,13 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from algox.memory import Evidence, InMemoryStore, MemoryRecord, benchmark_retrieval
+from algox.memory import Evidence, InMemoryStore, MemoryRecord, benchmark_decision_chain, benchmark_governance, benchmark_retrieval
+from algox.memory.entities import ResearchEntity, ResearchEntityStore
 
 
 ROOT = Path(__file__).parents[1]
 DATASET = ROOT / "research" / "experiments" / "memory-benchmark-dataset.json"
+CHAIN_FIXTURE = ROOT / "research" / "experiments" / "memory-chain-fixture.json"
 
 
 def load_store() -> InMemoryStore:
@@ -38,8 +40,29 @@ def load_store() -> InMemoryStore:
     return store
 
 
+def load_chain(evidence: InMemoryStore) -> ResearchEntityStore:
+    """Build the typed research graph from the canonical chain fixture."""
+    data = json.loads(CHAIN_FIXTURE.read_text(encoding="utf-8"))
+    entities = ResearchEntityStore()
+    for item in data["entities"]:
+        evidence_ids = ()
+        if item["id"] == "C-001":
+            evidence_ids = ("E-004",)
+        entities.add(ResearchEntity(item["id"], item["type"], item["content"], evidence_ids))
+    for source, relation, target in data["edges"]:
+        if relation in {"tested_by", "produced", "supports", "informs", "affects"}:
+            entities.link(source, relation, target)
+    return entities
+
+
 def main() -> int:
-    results = benchmark_retrieval(load_store())
+    store = load_store()
+    results = benchmark_retrieval(store)
+
+    entities = load_chain(store)
+    results.extend(benchmark_decision_chain(entities, store, "D-001"))
+    results.extend(benchmark_governance(entities, store))
+
     print("EXP-MEM-0001")
     failed = False
     for result in results:
