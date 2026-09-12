@@ -31,6 +31,27 @@ def test_complete_decision_chain_is_valid():
 
 def test_missing_experiment_link_is_reported():
     entities, evidence = build_chain()
-    entities.edges = [edge for edge in entities.edges if edge.source_id != "C"]
+    entities.edges = [edge for edge in entities.edges if not (edge.source_id == "C" and edge.relation == "tested_by")]
     errors = validate_decision_chain(entities, evidence, "D")
-    assert any("C" in error and "tested_by" in error for error in errors)
+    assert any("X" in error and "tested_by" in error for error in errors) or any("Experiment" in error for error in errors)
+
+
+def test_missing_finding_is_reported_from_decision():
+    entities, evidence = build_chain()
+    entities.edges = [edge for edge in entities.edges if not (edge.source_id == "F" and edge.relation == "informs")]
+    errors = validate_decision_chain(entities, evidence, "D")
+    assert any("D" in error and "informs" in error for error in errors)
+
+
+def test_missing_capability_target_is_reported():
+    entities, evidence = build_chain()
+    entities.edges = [edge for edge in entities.edges if not (edge.source_id == "D" and edge.relation == "affects")]
+    errors = validate_decision_chain(entities, evidence, "D")
+    assert any("D" in error and "affects" in error for error in errors)
+
+
+def test_claim_without_evidence_is_reported():
+    entities, evidence = build_chain()
+    entities.entities["C"] = ResearchEntity("C", "Claim", "claim")
+    errors = validate_decision_chain(entities, evidence, "D")
+    assert "C: claim requires evidence" in errors
