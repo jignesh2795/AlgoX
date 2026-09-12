@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algox.local/schemas/finding.schema.json",
+  "title": "AlgoX Finding",
+  "type": "object",
+  "required": ["id", "statement", "confidence"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^FND-[0-9]{4,}$"},
+    "statement": {"type": "string"},
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "experiments": {"type": "array", "items": {"type": "string"}},
+    "confidence": {"type": "string"},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string"}
+  },
+  "additionalProperties": true
+}

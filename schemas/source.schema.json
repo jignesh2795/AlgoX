@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algox.local/schemas/source.schema.json",
+  "title": "AlgoX Source Record",
+  "type": "object",
+  "required": ["id", "type", "title"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^SRC-[0-9]{4,}$"},
+    "type": {"type": "string"},
+    "title": {"type": "string"},
+    "url": {"type": "string", "format": "uri"},
+    "author": {"type": "array", "items": {"type": "string"}},
+    "published_at": {"type": "string", "format": "date-time"},
+    "retrieved_at": {"type": "string", "format": "date-time"},
+    "version": {"type": "string"},
+    "license": {"type": "string"},
+    "reliability_notes": {"type": "string"}
+  },
+  "additionalProperties": true
+}
