@@ -27,7 +27,8 @@ class KnowledgeGovernance:
     def review_delta(self, delta: KnowledgeDelta) -> CommitReview:
         errors: list[str] = []
         review_required = False
-        if delta.operation not in {"ADD", "UPDATE", "SUPERSEDE", "REFUTE", "QUALIFY"}:
+        valid_operations = {"ADD", "UPDATE", "SUPERSEDE", "REFUTE", "QUALIFY"}
+        if delta.operation not in valid_operations:
             errors.append("invalid operation")
         if not delta.evidence_ids:
             errors.append("durable knowledge requires evidence")
@@ -39,9 +40,13 @@ class KnowledgeGovernance:
         if delta.operation == "ADD" and delta.entity_id in self.entities.entities:
             errors.append("ADD cannot replace an existing entity")
 
-        # A delta backed by evidence can still be unsafe to institutionalize
-        # when it conflicts with existing knowledge. It requires an explicit
-        # human/policy review rather than being silently rejected or approved.
+        # Refutation, qualification and supersession can change the truth state
+        # of existing institutional knowledge. They therefore require explicit
+        # review even when the supporting evidence is present.
+        if delta.operation in {"REFUTE", "QUALIFY", "SUPERSEDE"} and not errors:
+            review_required = True
+
+        # A previously disputed entity also cannot silently become trusted.
         if not errors and delta.entity_id in self.entities.entities:
             existing = self.entities.entities[delta.entity_id]
             if existing.status == "disputed":
@@ -50,7 +55,12 @@ class KnowledgeGovernance:
         if errors:
             return CommitReview(delta.id, False, tuple(sorted(set(errors))), "rejected")
         if review_required:
-            return CommitReview(delta.id, False, ("existing entity is disputed; explicit review required",), "review_required")
+            return CommitReview(
+                delta.id,
+                False,
+                ("truth-changing proposal requires explicit review",),
+                "review_required",
+            )
         return CommitReview(delta.id, True, (), "approved")
 
     def commit_entity(self, entity: ResearchEntity, *, approved_by: str) -> None:
