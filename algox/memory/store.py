@@ -71,18 +71,24 @@ class InMemoryStore:
             raise KeyError("both memory endpoints must exist")
         self.memories[source_id].relations.append((relation, target_id))
 
+    @staticmethod
+    def _valid_at(memory: MemoryRecord, as_of: datetime) -> bool:
+        """Evaluate historical validity independently of current status."""
+        return (
+            (memory.valid_from is None or memory.valid_from <= as_of)
+            and (memory.valid_to is None or as_of < memory.valid_to)
+        )
+
     def retrieve(self, query: str, *, as_of: datetime | None = None) -> list[MemoryRecord]:
         """Deterministic baseline retrieval; semantic retrieval is a later adapter."""
         terms = {term.lower() for term in query.split() if term.strip()}
         candidates: list[MemoryRecord] = []
         for memory in self.memories.values():
-            if memory.status != "active":
+            if as_of is None:
+                if memory.status != "active":
+                    continue
+            elif not self._valid_at(memory, as_of):
                 continue
-            if as_of is not None:
-                if memory.valid_from and as_of < memory.valid_from:
-                    continue
-                if memory.valid_to and as_of >= memory.valid_to:
-                    continue
             haystack = f"{memory.content} {' '.join(memory.evidence_ids)}".lower()
             if terms & set(haystack.split()):
                 candidates.append(memory)
@@ -90,9 +96,7 @@ class InMemoryStore:
 
     def find_conflicts(self, memory_id: str) -> list[MemoryRecord]:
         memory = self.memories[memory_id]
-        targets = {
-            target for relation, target in memory.relations if relation == "contradicts"
-        }
+        targets = {target for relation, target in memory.relations if relation == "contradicts"}
         return [self.memories[target] for target in targets]
 
     def propose_delta(self, delta: KnowledgeDelta) -> None:
@@ -122,10 +126,4 @@ class InMemoryStore:
         # deliberately explicit so policy layers can be inserted later.
 
     def reconstruct_as_of(self, as_of: datetime) -> list[MemoryRecord]:
-        return [
-            memory
-            for memory in self.memories.values()
-            if memory.status == "active"
-            and (memory.valid_from is None or memory.valid_from <= as_of)
-            and (memory.valid_to is None or as_of < memory.valid_to)
-        ]
+        return [memory for memory in self.memories.values() if self._valid_at(memory, as_of)]
