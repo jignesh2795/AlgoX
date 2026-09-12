@@ -34,7 +34,7 @@ def test_truth_changing_operations_require_explicit_review():
         review = gov.review_delta(KnowledgeDelta(f"K-{operation}", operation, "Claim", f"C-{operation}", ("E-1",), "changes claim status"))
         assert review.approved is False
         assert review.status == "review_required"
-        assert "explicit review required" in review.errors[0]
+        assert "truth-changing proposal requires explicit review" in review.errors[0]
 
 
 def test_commit_requires_explicit_approval_identity():
