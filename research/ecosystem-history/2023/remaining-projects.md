@@ -17,7 +17,6 @@ These candidates are research targets, not endorsements. Completed items are ret
 - Open Interpreter — PX-2023-026
 
 ### Follow-up
-- agent evaluation/failure studies
 - Voyager / embodied-agent research
 - Toolformer / tool-use research
 - Reflexion / self-improvement
@@ -47,15 +46,14 @@ These candidates are research targets, not endorsements. Completed items are ret
 - text-generation-webui
 - FastChat
 - vLLM — PX-2023-025
+- Hugging Face Transformers — PX-2023-061
+- MLC LLM — PX-2023-064
+- Axolotl — PX-2023-065
+- Ray Serve / BentoML / DeepSpeed — PX-2023-069
 
 ### Follow-up
-- Hugging Face Transformers
-- Diffusers
-- MLC LLM
 - LitGPT
-- Axolotl
-- DeepSpeed inference/training
-- Ray Serve / BentoML
+- additional inference/runtime projects
 
 ## Generative media
 
@@ -74,9 +72,10 @@ These candidates are research targets, not endorsements. Completed items are ret
 - Milvus — PX-2023-035
 - Chroma — PX-2023-036
 - Weaviate — PX-2023-029
+- FAISS — PX-2023-062
+- Haystack — PX-2023-063
 
 ### Follow-up
-- FAISS
 - retrieval/RAG architecture evolution
 - hybrid lexical + semantic retrieval
 - retrieval evaluation
@@ -92,17 +91,22 @@ These candidates are research targets, not endorsements. Completed items are ret
 - vectorbt — PX-2023-031
 - Hummingbot — PX-2023-033
 - CCXT — PX-2023-034
+- Freqtrade — PX-2023-066
+- Backtrader — PX-2023-067
+- Jesse — PX-2023-068
 
 ### Follow-up
-- Freqtrade
 - NautilusTrader historical state
-- Jesse
-- Backtrader / Zipline historical evolution
+- Zipline historical evolution
 - QuantConnect LEAN historical state
 - financial data infrastructure
 - broker/exchange API abstractions
-- Indian-market open-source ecosystem where evidence exists
+- Indian-market open-source ecosystem where historical evidence exists
 - execution, reconciliation, fill simulation and risk architecture
+
+## Discovery note
+
+The discovery pass has now added additional infrastructure and trading-framework records, but this does not mean 2023 is closed. In particular, Indian-market repositories must be screened by historical evidence rather than by their current popularity. Current projects such as OpenAlgo and related Indian broker integrations are useful discovery leads, but their historical year must be established before being classified as 2023 evidence.
 
 ## Research rule
 
