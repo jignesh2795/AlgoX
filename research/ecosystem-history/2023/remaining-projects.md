@@ -1,45 +1,109 @@
-# 2023 Ecosystem Research — Additional Candidates
+# 2023 Ecosystem Research — Remaining / Follow-up Candidates
 
-These candidates extend the initial 2023 project records. They are research targets, not endorsements.
+These candidates are research targets, not endorsements. Completed items are retained below as historical coverage so the research program remains auditable.
 
 ## Agent systems
 
-- BabyAGI — task generation, prioritization, execution, and memory-oriented autonomous loops.
-- CAMEL — role-playing multi-agent collaboration.
-- Generative Agents — memory, reflection, planning, and interaction in simulated environments.
-- AgentGPT — browser-oriented autonomous task execution.
-- SuperAGI — agent tooling, memory, telemetry, and execution infrastructure.
-- MetaGPT — role-specialized multi-agent software development.
-- ChatDev — staged multi-agent software production.
-- MemGPT — explicit management of limited working context and longer-term memory.
+### Covered
+- BabyAGI
+- CAMEL — PX-2023-017
+- Generative Agents
+- AgentGPT
+- SuperAGI
+- MetaGPT
+- ChatDev
+- MemGPT
+- AutoGen — PX-2023-018
+- Open Interpreter — PX-2023-026
+
+### Follow-up
+- agent evaluation/failure studies
+- Voyager / embodied-agent research
+- Toolformer / tool-use research
+- Reflexion / self-improvement
+- AgentBench / WebArena evaluation
 
 ## AI software engineering
 
-- Aider — repository-aware coding interaction and iterative software modification.
-- GPT Engineer — specification-driven project generation and clarification.
-- GPT Migrate — AI-assisted codebase migration.
-- Continue — early open-source AI coding assistant architecture.
+### Covered
+- Aider
+- GPT Engineer
+- GPT Migrate
+- Continue
+- Code Llama — PX-2023-022
+- SWE-bench historical origin/evidence
+
+### Follow-up
+- repository-aware coding architectures
+- code-agent verification patterns
+- local coding models
 
 ## Model and inference infrastructure
 
-- Hugging Face Transformers — model abstraction, pretrained model ecosystem, and interoperability.
-- Hugging Face Diffusers — modular diffusion-model pipelines.
-- llama.cpp — local inference and hardware-aware model execution.
-- text-generation-webui — local model serving/UI and backend abstraction.
-- FastChat — model serving, evaluation, and human-preference workflows.
+### Covered
+- LLaMA — PX-2023-021
+- Code Llama — PX-2023-022
+- llama.cpp
+- text-generation-webui
+- FastChat
+- vLLM — PX-2023-025
+
+### Follow-up
+- Hugging Face Transformers
+- Diffusers
+- MLC LLM
+- LitGPT
+- Axolotl
+- DeepSpeed inference/training
+- Ray Serve / BentoML
 
 ## Generative media
 
-- AUTOMATIC1111 Stable Diffusion WebUI — extensible local image-generation application architecture.
-- InvokeAI — modular generative-image workflow tooling.
-- ComfyUI — graph-based generative media workflow architecture.
+### Follow-up
+- AUTOMATIC1111 Stable Diffusion WebUI
+- InvokeAI
+- ComfyUI
+- ControlNet
+- Segment Anything
+- Whisper / multimodal infrastructure
 
 ## Data / retrieval infrastructure
 
-- Milvus — vector database infrastructure relevant to retrieval systems.
-- Chroma — developer-oriented embedding/vector storage.
-- Weaviate — vector search and semantic data infrastructure.
+### Covered
+- Qdrant — PX-2023-019
+- Milvus — PX-2023-035
+- Chroma — PX-2023-036
+- Weaviate — PX-2023-029
+
+### Follow-up
+- FAISS
+- retrieval/RAG architecture evolution
+- hybrid lexical + semantic retrieval
+- retrieval evaluation
+
+## Financial / quantitative ecosystem — priority
+
+### Covered
+- Microsoft Qlib — PX-2023-020
+- OpenBB Terminal — PX-2023-032
+- FinGPT — PX-2023-027
+- BloombergGPT — PX-2023-028
+- FinRL — PX-2023-030
+- vectorbt — PX-2023-031
+- Hummingbot — PX-2023-033
+- CCXT — PX-2023-034
+
+### Follow-up
+- Freqtrade
+- NautilusTrader historical state
+- Jesse
+- Backtrader / Zipline historical evolution
+- QuantConnect LEAN historical state
+- financial data infrastructure
+- broker/exchange API abstractions
+- Indian-market open-source ecosystem where evidence exists
+- execution, reconciliation, fill simulation and risk architecture
 
 ## Research rule
 
-A project enters the permanent knowledge catalog only after its historical relevance, architecture, evidence, and outcome have been evaluated. Popularity is a discovery signal rather than a quality score.
+A project enters the permanent knowledge catalog only after its historical relevance, architecture, evidence, outcome, and provenance have been evaluated. Popularity is a discovery signal rather than a quality score. Historical year refers to the relevant ecosystem development/release/evidence year, not necessarily the project's original creation year.
