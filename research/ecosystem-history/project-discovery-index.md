@@ -2,13 +2,9 @@
 
 ## Purpose
 
-This index corrects a research-process gap: AlgoX must not infer ecosystem history
-from a small hand-picked project set. Historical discovery must precede synthesis.
+This index corrects a research-process gap: AlgoX must not infer ecosystem history from a small hand-picked project set. Historical discovery must precede synthesis.
 
-The index records projects that should be researched as primary project records.
-A project being listed here is **not** a quality endorsement. Popularity/trending
-status is discovery evidence only; architecture and engineering claims require
-separate evidence.
+The index records projects that should be researched as primary project records. A project being listed here is **not** a quality endorsement. Popularity/trending status is discovery evidence only; architecture and engineering claims require separate evidence.
 
 ## 2023 — foundation / agent experimentation
 
@@ -117,6 +113,33 @@ Priority research candidates:
 - QRAFTI — agentic quantitative-finance research
 - Agentic AI for Quantitative Research and Alpha Discovery — end-to-end quant research agents
 
+## Indian-market historical discovery — 2023 evidence leads
+
+These entries are tracked because they provide dated or historically relevant evidence for Indian-market capability gaps. They are not all complete project studies.
+
+- PX-2023-070 — Zerodha Kite Connect / pykiteconnect — dated July 31, 2023 evidence for orders, trades, positions, instrument master, historical data, margins and charge calculation.
+- PX-2023-071 — Indian broker API boundary pattern — broker-specific evidence; common normalization remains unproven historically.
+- PX-2023-072 — Indian market data & instrument identity — provider token, trading symbol, expiry, strike, tick size and lot size.
+- PX-2023-073 — OpenAlgo historical boundary — current project must not be backdated; launch evidence belongs to 2024+.
+- PX-2023-074 — QuantConnect LEAN — long-lived event-driven trading-engine reference.
+- PX-2023-075 — NautilusTrader — 2023 event-driven execution/reconciliation reference.
+- PX-2023-076 — Zipline 3.7 → v4 transition — 2023 architecture-evolution case.
+- PX-2023-077 — Indian broker/API ecosystem — dated broker boundary comparison.
+- PX-2023-078 — Indian NSE/BSE data projects — historical market-data discovery leads.
+- PX-2023-079 — Data correctness & reconciliation — provider data and execution-state capability record.
+- PX-2023-080 — Indian Market 2023 Discovery Gap Audit — explicit historical-coverage audit.
+- PX-2023-081 — Event-driven financial-data infrastructure — tick/event distribution reference.
+- PX-2023-082 — Execution reconciliation — external venue state vs internal state.
+- PX-2023-083 — Execution-simulation gap — realistic fills and partial fills remain open.
+- PX-2023-084 — Indian-market corporate actions — practitioner implementations found; provenance architecture remains open.
+- PX-2023-085 — Indian derivatives semantics — expiry/strike/right/lot-size evidence; complete lifecycle remains open.
+- PX-2023-086 — Indian cost & margin modeling — broker-side capabilities evidenced; normalized simulator remains open.
+- PX-2023-087 — Corporate Actions and Instrument Identity — canonical identity and adjustment provenance capability.
+- PX-2023-088 — Execution Reconciliation Invariants — duplicate/missing/unknown outcome handling.
+- PX-2023-089 — Indian Tick / Order-Book Collection — tick collectors and blotter/order-book architecture; deterministic replay remains open.
+- PX-2023-090 — Indian Corporate-Action Collection — NSE corporate-action ingestion evidence lead, not proof of mature adjustment architecture.
+- PX-2023-091 — Indian Option-Chain / Contract Synchronization — daily instrument synchronization and expiry-specific streaming evidence lead.
+
 ## Research policy
 
 For each project, AlgoX should capture:
@@ -159,28 +182,15 @@ Contradiction / Gap Analysis
 Year Synthesis
 ```
 
-Do not close a year merely because the current shortlist appears coherent.
-Newly discovered projects can QUALIFY, SUPERSEDE or REFUTE the provisional
-synthesis.
+Do not close a year merely because the current shortlist appears coherent. Newly discovered projects can QUALIFY, SUPERSEDE or REFUTE the provisional synthesis.
 
 ## Current correction
 
-The earlier 2023 work was broader than the initial shortlist, but it was still
-not sufficient to claim exhaustive historical GitHub discovery. The discovery
-index is therefore a living inventory rather than a claim of mathematical
-exhaustiveness. Current GitHub search/topic evidence should be supplemented by
-historical snapshots, release dates, papers and archived trend evidence when
-ranking a project as historically significant.
+The earlier 2023 work was broader than the initial shortlist, but it was still not sufficient to claim exhaustive historical GitHub discovery. The discovery index is therefore a living inventory rather than a claim of mathematical exhaustiveness. Current GitHub search/topic evidence should be supplemented by historical snapshots, release dates, papers and archived trend evidence when ranking a project as historically significant.
 
-New primary records added in the current pass:
+The latest targeted evidence pass concludes that 2023 can support a **qualified architectural synthesis** for the Indian-market layer, but not a claim of exhaustive historical coverage. See:
 
-- PX-2023-055 — LiteLLM
-- PX-2023-056 — CrewAI
-- PX-2023-057 — LangGraph
-- PX-2023-058 — GPT Researcher
-- PX-2023-059 — Semantic Kernel
-- PX-2023-060 — Vercel AI SDK
+- `research/ecosystem-history/2023/2023-final-targeted-evidence-hunt-v1.md`
+- `research/ecosystem-history/2023/2023-contradiction-and-gap-audit-v1.md`
 
-These are initial research records, not completed project studies. They must go
-through the same evidence and capability-extraction process as the earlier
-PX-2023 records before the 2023 synthesis is considered final.
+New primary records must still go through the same evidence and capability-extraction process before the 2023 synthesis is considered final.
