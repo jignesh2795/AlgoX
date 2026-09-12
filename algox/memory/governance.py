@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from .chain_validation import validate_decision_chain
 from .entities import ResearchEntity, ResearchEntityStore
 from .store import Evidence, InMemoryStore, KnowledgeDelta
 
@@ -15,6 +14,7 @@ class CommitReview:
     delta_id: str
     approved: bool
     errors: tuple[str, ...]
+    status: str = "rejected"
 
 
 class KnowledgeGovernance:
@@ -26,6 +26,7 @@ class KnowledgeGovernance:
 
     def review_delta(self, delta: KnowledgeDelta) -> CommitReview:
         errors: list[str] = []
+        review_required = False
         if delta.operation not in {"ADD", "UPDATE", "SUPERSEDE", "REFUTE", "QUALIFY"}:
             errors.append("invalid operation")
         if not delta.evidence_ids:
@@ -37,15 +38,23 @@ class KnowledgeGovernance:
         )
         if delta.operation == "ADD" and delta.entity_id in self.entities.entities:
             errors.append("ADD cannot replace an existing entity")
-        return CommitReview(delta.id, not errors, tuple(sorted(set(errors))))
+
+        # A delta backed by evidence can still be unsafe to institutionalize
+        # when it conflicts with existing knowledge. It requires an explicit
+        # human/policy review rather than being silently rejected or approved.
+        if not errors and delta.entity_id in self.entities.entities:
+            existing = self.entities.entities[delta.entity_id]
+            if existing.status == "disputed":
+                review_required = True
+
+        if errors:
+            return CommitReview(delta.id, False, tuple(sorted(set(errors))), "rejected")
+        if review_required:
+            return CommitReview(delta.id, False, ("existing entity is disputed; explicit review required",), "review_required")
+        return CommitReview(delta.id, True, (), "approved")
 
     def commit_entity(self, entity: ResearchEntity, *, approved_by: str) -> None:
-        """Explicitly commit an already-reviewed entity.
-
-        `approved_by` is required so automated extraction cannot silently become
-        institutional truth. The reference implementation records the entity;
-        production adapters should persist the approval event separately.
-        """
+        """Commit an already-reviewed entity with explicit approval identity."""
         if not approved_by.strip():
             raise ValueError("approved_by is required")
         missing = [eid for eid in entity.evidence_ids if eid not in self.evidence.evidence]
