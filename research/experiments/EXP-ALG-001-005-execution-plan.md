@@ -8,6 +8,8 @@ Move AlgoX from externally informed architecture decisions to locally measured e
 
 **Question:** Does the current logical memory model justify PostgreSQL as the first durable store?
 
+**Implementation status:** benchmark harness and SQLite candidate implemented; local execution pending.
+
 Measure:
 - insert/update throughput
 - retrieval latency
@@ -18,7 +20,7 @@ Measure:
 
 Baselines:
 - current InMemoryStore
-- minimal SQLite/local relational prototype if available
+- minimal SQLite/local relational prototype
 - PostgreSQL only when a local instance is available
 
 Gate:
@@ -43,6 +45,8 @@ Metrics:
 Gate:
 - retrieval is a candidate generator; no result becomes institutional truth without evidence validation.
 
+**Status:** research/design complete; execution follows EXP-ALG-001.
+
 ## EXP-ALG-003 — Memory usefulness / ablation
 
 **Question:** Does institutional memory measurably improve research-agent decisions?
@@ -63,6 +67,8 @@ Metrics:
 Gate:
 - retain a memory mechanism only when it produces measurable improvement on the benchmark.
 
+**Status:** experiment design complete; execution follows retrieval validation.
+
 ## EXP-ALG-004 — Durable learning governance
 
 **Question:** Can an agent learn from experience without silently corrupting institutional memory?
@@ -75,6 +81,8 @@ Test:
 - audit event creation
 - disputed/refuted knowledge
 - supersession
+
+**Implementation status:** governed-learning bridge, governance checks, consolidation rules and audit surface implemented; local execution pending.
 
 Gate:
 - every truth-changing durable update is auditable and evidence-backed.
@@ -94,6 +102,8 @@ Pipeline:
 - finding proposal
 - governance
 
+**Fixture status:** reliability fixture classes defined; execution harness remains to be wired to real experiment execution.
+
 Metrics:
 - execution success
 - reproduction correctness
@@ -103,7 +113,7 @@ Metrics:
 - human intervention count
 
 External rationale:
-Current research-agent benchmarks show sharp degradation as autonomous implementation becomes harder, and multi-trial execution can substantially outperform single-shot execution; this supports explicit verification and retry rather than trusting first-pass output. See AutoExperiment and RExBench.
+Current research-agent benchmarks show sharp degradation as autonomous implementation becomes harder, and multi-trial execution can substantially outperform single-shot execution; this supports explicit verification and retry rather than trusting first-pass output.
 
 ## Local execution policy
 
@@ -130,6 +140,6 @@ Do not mark an experiment `PASSED` merely because code runs. Record:
 - conclusion
 - decision
 
-## Status
+## Current status
 
-Plan only. No experiment is claimed to have passed until it has actually been executed and its result recorded.
+The P0 validation program is now implementation-ready for local execution. No experiment is claimed to have passed until it has actually been executed and its result recorded.
