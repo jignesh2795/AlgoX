@@ -1,12 +1,9 @@
-"""First-class institutional research entities.
-
-These entities remain storage-independent. They reference the existing memory
-and evidence records rather than introducing a second source of truth.
-"""
+"""First-class institutional research entities."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 
 
 ENTITY_TYPES = {"Claim", "Finding", "Experiment", "Result", "Decision", "Capability"}
@@ -18,10 +15,24 @@ class ResearchEntity:
     entity_type: str
     content: str
     evidence_ids: tuple[str, ...] = ()
+    valid_from: datetime | None = None
+    valid_to: datetime | None = None
+    status: str = "active"
 
     def __post_init__(self) -> None:
         if self.entity_type not in ENTITY_TYPES:
             raise ValueError(f"unsupported research entity type: {self.entity_type}")
+        if self.valid_from and self.valid_to and self.valid_from >= self.valid_to:
+            raise ValueError("valid_from must precede valid_to")
+        if self.status not in {"active", "superseded", "disputed", "retracted"}:
+            raise ValueError(f"unsupported research entity status: {self.status}")
+
+    def is_valid_at(self, at: datetime) -> bool:
+        return (
+            self.status == "active"
+            and (self.valid_from is None or self.valid_from <= at)
+            and (self.valid_to is None or at < self.valid_to)
+        )
 
 
 @dataclass(frozen=True)
@@ -60,3 +71,6 @@ class ResearchEntityStore:
 
     def evidence_for(self, entity_id: str) -> tuple[str, ...]:
         return self.entities[entity_id].evidence_ids
+
+    def valid_entities_at(self, at: datetime) -> list[ResearchEntity]:
+        return [entity for entity in self.entities.values() if entity.is_valid_at(at)]
