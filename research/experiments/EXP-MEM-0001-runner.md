@@ -12,8 +12,8 @@ The executable harness is `algox/memory/benchmark.py`. It intentionally depends 
 - W4 contradiction retrieval: counter-evidence recall + latency
 - W5 temporal retrieval: temporal accuracy
 - W6 provenance completeness
-- W8 decision-chain validation and reconstruction primitives
-- W9 experiment-to-decision path tracing primitives
+- W8 decision-chain validation: validator implemented; executable benchmark metric still pending
+- W9 experiment-to-decision path tracing: graph/path primitives implemented; executable benchmark metric still pending
 
 ## Interpretation policy
 
@@ -25,11 +25,12 @@ Latency numbers are environment-dependent and must only be recorded from an actu
 
 - W2 formal Recall@k / Precision@k measurement
 - W7 explicit supersession query metric
-- W8 executable decision-chain benchmark
+- W8 executable decision-chain benchmark and reconstruction accuracy
 - W9 executable experiment-to-decision benchmark
 - W10 full rebuild verification
 - contradiction-chain and counter-evidence scoring
 - temporal path validity at multiple `as_of` timestamps
+- governance review/audit latency and reconstruction correctness
 - repeated runs with median/p95 latency
 - larger synthetic corpus
 - PostgreSQL comparison after the in-process baseline is stable
