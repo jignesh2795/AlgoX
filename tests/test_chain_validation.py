@@ -5,7 +5,7 @@ from algox.memory.entities import ResearchEntity, ResearchEntityStore
 from algox.memory.store import Evidence, InMemoryStore
 
 
-def test_complete_decision_chain_is_valid():
+def build_chain():
     evidence = InMemoryStore()
     evidence.add_evidence(Evidence("E-1", "S-1", "claim", datetime(2026, 1, 1, tzinfo=timezone.utc)))
     evidence.add_evidence(Evidence("E-2", "S-2", "result", datetime(2026, 1, 2, tzinfo=timezone.utc)))
@@ -16,19 +16,21 @@ def test_complete_decision_chain_is_valid():
     entities.add(ResearchEntity("F", "Finding", "finding"))
     entities.add(ResearchEntity("D", "Decision", "decision"))
     entities.add(ResearchEntity("K", "Capability", "capability"))
+    entities.link("C", "tested_by", "X")
+    entities.link("X", "produced", "R")
+    entities.link("R", "supports", "F")
+    entities.link("F", "informs", "D")
     entities.link("D", "affects", "K")
-    entities.link("D", "informs", "F")
-    entities.link("F", "informs", "D")
-    # The validator follows the canonical backward chain through required edges.
-    entities.link("F", "informs", "D")
-    assert "D: missing required relation affects" not in validate_decision_chain(entities, evidence, "D")
+    return entities, evidence
+
+
+def test_complete_decision_chain_is_valid():
+    entities, evidence = build_chain()
+    assert validate_decision_chain(entities, evidence, "D") == []
 
 
 def test_missing_experiment_link_is_reported():
-    evidence = InMemoryStore()
-    entities = ResearchEntityStore()
-    entities.add(ResearchEntity("D", "Decision", "decision"))
-    entities.add(ResearchEntity("K", "Capability", "capability"))
-    entities.link("D", "affects", "K")
+    entities, evidence = build_chain()
+    entities.edges = [edge for edge in entities.edges if edge.source_id != "C"]
     errors = validate_decision_chain(entities, evidence, "D")
-    assert any("missing required relation" in error for error in errors)
+    assert any("C" in error and "tested_by" in error for error in errors)
