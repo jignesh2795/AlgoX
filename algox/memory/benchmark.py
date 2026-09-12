@@ -36,7 +36,8 @@ def benchmark_retrieval(store: InMemoryStore) -> list[BenchmarkResult]:
     start = perf_counter()
     bundle = retriever.retrieve("broker API asynchronous order", limit=10)
     elapsed_ms = (perf_counter() - start) * 1000
-    results.append(BenchmarkResult("W1 exact retrieval", "E-002" in bundle.supporting_evidence, "evidence_recall", _ratio("E-002" in bundle.supporting_evidence), "ratio"))
+    found = "E-002" in bundle.supporting_evidence
+    results.append(BenchmarkResult("W1 exact retrieval", found, "evidence_recall", _ratio(found), "ratio"))
     results.append(BenchmarkResult("W1 exact retrieval", True, "latency", elapsed_ms, "ms"))
 
     start = perf_counter()
@@ -74,7 +75,6 @@ def benchmark_retrieval(store: InMemoryStore) -> list[BenchmarkResult]:
     rebuild_ok = signature_before == signature_after
     results.append(BenchmarkResult("W10 graph rebuild", rebuild_ok, "rebuild_signature_equality", _ratio(rebuild_ok), "ratio"))
     results.append(BenchmarkResult("W10 graph rebuild", True, "latency", elapsed_ms, "ms"))
-
     return results
 
 
@@ -86,8 +86,7 @@ def _supersession_invariant(store: InMemoryStore) -> bool:
             if relation == "superseded_by":
                 successor_pairs.append((memory.id, target))
     return bool(successor_pairs) and all(
-        old in store.memories
-        and new in store.memories
+        old in store.memories and new in store.memories
         and store.memories[old].status == "superseded"
         and store.memories[new].status == "active"
         for old, new in successor_pairs
@@ -104,11 +103,9 @@ def benchmark_decision_chain(entities: ResearchEntityStore, evidence: InMemorySt
         BenchmarkResult("W8 decision-chain reconstruction", chain_ok, "chain_validity", _ratio(chain_ok), "ratio"),
         BenchmarkResult("W8 decision-chain reconstruction", True, "latency", elapsed_ms, "ms"),
     ]
-
     decision_to_capability = any(
-        edge.source_id == decision_id
-        and edge.relation == "affects"
-        and entities.entities.get(edge.target_id, None) is not None
+        edge.source_id == decision_id and edge.relation == "affects"
+        and entities.entities.get(edge.target_id) is not None
         and entities.entities[edge.target_id].entity_type == "Capability"
         for edge in entities.edges
     )
@@ -123,13 +120,8 @@ def benchmark_governance(entities: ResearchEntityStore, evidence: InMemoryStore)
     results: list[BenchmarkResult] = []
 
     valid_delta = KnowledgeDelta(
-        id="BM-DELTA-001",
-        operation="ADD",
-        entity_type="Finding",
-        entity_id="BM-F-001",
-        evidence_ids=("E-001",),
-        reason="benchmark governance proposal",
-        confidence=0.9,
+        id="BM-DELTA-001", operation="ADD", entity_type="Finding", entity_id="BM-F-001",
+        evidence_ids=("E-001",), reason="benchmark governance proposal", confidence="high",
     )
     start = perf_counter()
     review = governance.review_delta(valid_delta)
@@ -140,18 +132,12 @@ def benchmark_governance(entities: ResearchEntityStore, evidence: InMemoryStore)
 
     start = perf_counter()
     audit.append(GovernanceEvent(
-        event_id="BM-EVENT-001",
-        event_type="REVIEWED",
-        entity_id="BM-F-001",
-        actor="benchmark",
-        occurred_at=datetime.now(timezone.utc),
-        evidence_ids=("E-001",),
-        reason="approved benchmark proposal",
+        event_id="BM-EVENT-001", event_type="REVIEWED", entity_id="BM-F-001", actor="benchmark",
+        occurred_at=datetime.now(timezone.utc), evidence_ids=("E-001",), reason="approved benchmark proposal",
     ))
     history = audit.history("BM-F-001")
     audit_ms = (perf_counter() - start) * 1000
     audit_ok = len(history) == 1 and history[0].event_id == "BM-EVENT-001"
     results.append(BenchmarkResult("G2 audit append", audit_ok, "append_correctness", _ratio(audit_ok), "ratio"))
     results.append(BenchmarkResult("G2 audit append", True, "latency", audit_ms, "ms"))
-
     return results
