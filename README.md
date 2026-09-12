@@ -51,6 +51,24 @@ No unverified claim should silently become an architectural requirement.
 
 `UNVERIFIED → REPRODUCED → BENCHMARKED → VALIDATED`
 
+## Local verification
+
+AlgoX does **not require GitHub Actions** for verification. The repository includes a local runner:
+
+```bash
+python tools/local_verify.py
+```
+
+For the full pytest suite, when pytest is installed locally:
+
+```bash
+python tools/local_verify.py --pytest
+```
+
+GitHub is used for source control and research review; Python execution and benchmark evidence are generated locally.
+
+See `research/experiments/EXP-MEM-0005-local-verification.md` for the verification protocol.
+
 ## Repository structure
 
 - `research/` — research questions and source studies
@@ -61,7 +79,7 @@ No unverified claim should silently become an architectural requirement.
 - `decisions/` — adoption decisions and ADRs
 - `planning/` — capability gaps, architecture alternatives, priorities, and roadmap
 - `schemas/` — machine-readable record contracts
-- `tools/` — future research automation
+- `tools/` — local research and verification utilities
 - `data/` — generated catalogs and indexes
 
 ## Status
