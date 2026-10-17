@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algox.local/schemas/knowledge-delta.schema.json",
+  "title": "AlgoX Knowledge Delta",
+  "type": "object",
+  "required": ["id", "operation", "entity_type", "entity_id", "provenance", "reason"],
+  "properties": {
+    "id": {"type": "string"},
+    "operation": {"enum": ["ADD", "UPDATE", "SUPERSEDE", "REFUTE", "QUALIFY"]},
+    "entity_type": {"enum": ["Memory", "Claim", "Finding", "Decision", "Capability", "Project", "Experiment", "Benchmark"]},
+    "entity_id": {"type": "string"},
+    "changes": {"type": "object"},
+    "provenance": {"type": "object", "required": ["evidence_ids"], "properties": {"evidence_ids": {"type": "array", "items": {"type": "string"}}}},
+    "reason": {"type": "string"},
+    "confidence": {"enum": ["unknown", "low", "medium", "high"]}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,19 @@
+{
+  "entities": [
+    {"id":"C-001","type":"Claim","content":"Method X may outperform baseline Y"},
+    {"id":"F-001","type":"Finding","content":"The reported advantage is not robust on the reproduction dataset"},
+    {"id":"EXP-017","type":"Experiment","content":"Reproduction of method X"},
+    {"id":"R-017","type":"Result","content":"Reported advantage was not reproduced"},
+    {"id":"D-001","type":"Decision","content":"Do not adopt method X without regime-specific validation"},
+    {"id":"CAP-001","type":"Capability","content":"Strategy research and validation"}
+  ],
+  "edges": [
+    ["C-001","supported_by","E-004"],
+    ["C-001","qualified_by","E-005"],
+    ["C-001","tested_by","EXP-017"],
+    ["EXP-017","produced","R-017"],
+    ["R-017","supports","F-001"],
+    ["F-001","informs","D-001"],
+    ["D-001","affects","CAP-001"]
+  ]
+}

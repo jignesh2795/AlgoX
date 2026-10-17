@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AlgoX Research Entity",
+  "type": "object",
+  "required": ["id", "entity_type", "content", "evidence_ids"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "entity_type": {"enum": ["Claim", "Finding", "Experiment", "Result", "Decision", "Capability"]},
+    "content": {"type": "string", "minLength": 1},
+    "evidence_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "additionalProperties": false
+}

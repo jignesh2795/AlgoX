@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algox.local/schemas/decision.schema.json",
+  "title": "AlgoX Decision",
+  "type": "object",
+  "required": ["id", "decision", "subject", "evidence"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^DEC-[0-9]{4,}$"},
+    "decision": {"type": "string", "enum": ["ADOPT", "ADAPT", "WRAP", "BUILD", "REJECT"]},
+    "subject": {"type": "string"},
+    "requirements": {"type": "array", "items": {"type": "string"}},
+    "alternatives": {"type": "array", "items": {"type": "string"}},
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "experiments": {"type": "array", "items": {"type": "string"}},
+    "trade_offs": {"type": "array", "items": {"type": "string"}},
+    "confidence": {"type": "string"},
+    "unresolved_questions": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string"}
+  },
+  "additionalProperties": true
+}

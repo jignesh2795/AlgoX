@@ -1,0 +1,27 @@
+{
+  "experiment": "EXP-MEM-0001",
+  "version": "1.1",
+  "records": [
+    {"id":"E-001","source_id":"SRC-BROKER","locator":"broker-api/v1","observed_at":"2026-01-10T00:00:00Z","maturity":"C1"},
+    {"id":"E-002","source_id":"SRC-BROKER","locator":"broker-api/v2","observed_at":"2026-07-01T00:00:00Z","maturity":"C1"},
+    {"id":"E-003","source_id":"SRC-EXCHANGE","locator":"rulebook/2026-01","observed_at":"2026-01-15T00:00:00Z","maturity":"C1"},
+    {"id":"E-004","source_id":"SRC-PAPER-A","locator":"paper/results","observed_at":"2026-02-01T00:00:00Z","maturity":"C2"},
+    {"id":"E-005","source_id":"SRC-PAPER-B","locator":"paper/results","observed_at":"2026-02-03T00:00:00Z","maturity":"C2"},
+    {"id":"E-006","source_id":"SRC-EXP","locator":"EXP-017/result","observed_at":"2026-03-01T00:00:00Z","maturity":"C5"}
+  ],
+  "memories": [
+    {"id":"M-001","memory_type":"semantic","content":"Broker API v1 exposes synchronous order submission","created_at":"2026-01-10T00:00:00Z","valid_from":"2026-01-10T00:00:00Z","valid_to":"2026-07-01T00:00:00Z","confidence":"medium","status":"superseded","evidence_ids":["E-001"]},
+    {"id":"M-002","memory_type":"semantic","content":"Broker API v2 emits asynchronous order lifecycle events","created_at":"2026-07-01T00:00:00Z","valid_from":"2026-07-01T00:00:00Z","confidence":"medium","status":"active","evidence_ids":["E-002"]},
+    {"id":"M-003","memory_type":"semantic","content":"An execution design must reconcile asynchronous broker events with internal order intent","created_at":"2026-02-01T00:00:00Z","confidence":"high","evidence_ids":["E-001","E-003"]},
+    {"id":"M-004","memory_type":"semantic","content":"Research Paper A reports method X outperforming baseline Y","created_at":"2026-02-01T00:00:00Z","confidence":"medium","evidence_ids":["E-004"]},
+    {"id":"M-005","memory_type":"semantic","content":"Research Paper B reports no significant advantage for method X under a different dataset","created_at":"2026-02-03T00:00:00Z","confidence":"medium","evidence_ids":["E-005"]},
+    {"id":"M-006","memory_type":"episodic","content":"EXP-017 reproduced method X but failed to reproduce the reported advantage","created_at":"2026-03-01T00:00:00Z","confidence":"high","evidence_ids":["E-006"]}
+  ],
+  "relations": [
+    {"source":"M-004","relation":"contradicts","target":"M-005"},
+    {"source":"M-004","relation":"tested_by","target":"M-006"},
+    {"source":"M-006","relation":"qualifies","target":"M-004"},
+    {"source":"M-001","relation":"superseded_by","target":"M-002"},
+    {"source":"M-003","relation":"depends_on","target":"M-002"}
+  ]
+}

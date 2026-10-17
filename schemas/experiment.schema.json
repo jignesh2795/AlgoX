@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algox.local/schemas/experiment.schema.json",
+  "title": "AlgoX Experiment",
+  "type": "object",
+  "required": ["id", "hypothesis", "baseline", "metrics", "status"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^EXP-[0-9]{4,}$"},
+    "hypothesis": {"type": "string"},
+    "baseline": {"type": "string"},
+    "candidate": {"type": "string"},
+    "dataset": {"type": "string"},
+    "metrics": {"type": "array", "items": {"type": "string"}},
+    "environment": {"type": "object"},
+    "configuration": {"type": "object"},
+    "result": {"type": "string"},
+    "conclusion": {"type": "string"},
+    "decision": {"type": "string"},
+    "status": {"type": "string"}
+  },
+  "additionalProperties": true
+}

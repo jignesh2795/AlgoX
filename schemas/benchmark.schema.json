@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algox.local/schemas/benchmark.schema.json",
+  "title": "AlgoX Benchmark",
+  "type": "object",
+  "required": ["id", "capability", "metrics"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^BM-[0-9]{4,}$"},
+    "capability": {"type": "string"},
+    "systems": {"type": "array", "items": {"type": "string"}},
+    "dataset": {"type": "string"},
+    "environment": {"type": "object"},
+    "metrics": {"type": "array", "items": {"type": "string"}},
+    "results": {"type": "object"},
+    "conclusion": {"type": "string"}
+  },
+  "additionalProperties": true
+}

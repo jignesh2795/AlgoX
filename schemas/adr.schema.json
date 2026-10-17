@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algox.local/schemas/adr.schema.json",
+  "title": "AlgoX Architecture Decision Record",
+  "type": "object",
+  "required": ["id", "title", "decision", "status"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^ADR-[0-9]{4,}$"},
+    "title": {"type": "string"},
+    "context": {"type": "string"},
+    "requirements": {"type": "array", "items": {"type": "string"}},
+    "alternatives": {"type": "array", "items": {"type": "string"}},
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "experiments": {"type": "array", "items": {"type": "string"}},
+    "decision": {"type": "string"},
+    "consequences": {"type": "array", "items": {"type": "string"}},
+    "confidence": {"type": "string"},
+    "status": {"type": "string", "enum": ["proposed", "accepted", "superseded", "rejected"]}
+  },
+  "additionalProperties": true
+}

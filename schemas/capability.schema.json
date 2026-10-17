@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algox.local/schemas/capability.schema.json",
+  "title": "AlgoX Capability",
+  "type": "object",
+  "required": ["id", "name", "domain", "maturity"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^CAP-[0-9]{4,}$"},
+    "name": {"type": "string"},
+    "domain": {"type": "string"},
+    "requirements": {"type": "array", "items": {"type": "string"}},
+    "projects": {"type": "array", "items": {"type": "string"}},
+    "patterns": {"type": "array", "items": {"type": "string"}},
+    "maturity": {"type": "string"},
+    "decision": {"type": "string", "enum": ["ADOPT", "ADAPT", "WRAP", "BUILD", "REJECT"]},
+    "confidence": {"type": "string"}
+  },
+  "additionalProperties": true
+}

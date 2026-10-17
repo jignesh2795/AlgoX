@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algox.local/schemas/project.schema.json",
+  "title": "AlgoX Project Record",
+  "type": "object",
+  "required": ["id", "name", "source", "status"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^PX-[0-9]{4,}$"},
+    "name": {"type": "string"},
+    "source": {"type": "string"},
+    "repository": {"type": "string"},
+    "version": {"type": "string"},
+    "domains": {"type": "array", "items": {"type": "string"}},
+    "capabilities": {"type": "array", "items": {"type": "string"}},
+    "architecture": {"type": "array", "items": {"type": "string"}},
+    "languages": {"type": "array", "items": {"type": "string"}},
+    "license": {"type": "string"},
+    "status": {"type": "string"},
+    "observed_at": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": true
+}

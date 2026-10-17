@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algox.local/schemas/extraction.schema.json",
+  "title": "AlgoX Extraction",
+  "type": "object",
+  "required": ["id", "source", "category", "extraction_type"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^EX-[0-9]{4,}$"},
+    "source": {"type": "string"},
+    "category": {"type": "string"},
+    "extraction_type": {"type": "string"},
+    "description": {"type": "string"},
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "license": {"type": "string"},
+    "potential_value": {"type": "string"},
+    "experiment": {"type": "string"},
+    "decision": {"type": "string", "enum": ["ADOPT", "ADAPT", "WRAP", "BUILD", "REJECT"]},
+    "destination": {"type": "string"}
+  },
+  "additionalProperties": true
+}
