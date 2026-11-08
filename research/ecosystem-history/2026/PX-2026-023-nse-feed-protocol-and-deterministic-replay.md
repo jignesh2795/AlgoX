@@ -158,6 +158,7 @@ These acceptance tests are proposed research gates. No code, fixtures or benchma
 - NSE Historical Research Data Layout v1.10, 27 July 2022: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_data_layout_1.10_0.pdf
 - NSE Historical Research Data Layout v1.11, 15 December 2023: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_data_layout_1.11_0.pdf
 - NSE Historical Research Data Layout v1.12, 6 June 2024: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_data_layout_1.12.pdf
+- Separate archived document also labelled v1.11, dated 20 June 2022 (different file lineage/content): https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_data_layout_1.11.pdf
 - NSE Historical Data Order & Trade Specification v1.14, 13 August 2025: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_Trade_Data_1.14.pdf
 - NSE Historical Data Order & Trade Specification v1.15, 8 September 2025: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/NSE_Hist_Order_Trade_Data_1.15.pdf
 - NSE Historical Order & Trade Specification v1.18, 18 May 2026 (Non-Confidential): https://nsearchives.nseindia.com/web/mediaattachment/2026-05/NSE_Hist_Order_Trade_Data_1.18_20260518122214.pdf
@@ -226,3 +227,27 @@ The SEBI 2024 policy specifies up to 2 GB per researcher per year free for quali
 NSE's Data Room is a separate, time-bound, approval-based route with no monetary consideration and cloud-hosted access. It may be worth screening for a research proposal but is not a guaranteed local download or an entitlement for a private/commercial AlgoX project.
 
 No sample ZIP was downloaded, no application was submitted and no paid data was purchased.
+
+
+### 10.6 Replay feasibility verdict
+
+The research-data files are best classified as **order-event-rich but sequence-unverified historical data**. They are suitable for testing record parsing, order/trade linkage, order-state transitions and partial-fill accounting. They are not yet proven sufficient for exact deterministic event replay because the reviewed row layouts lack per-event sequence numbers and the documentation does not define a tie-order guarantee for equal-jiffy events across separate order and trade files.
+
+The documented 2023 v1.11 research-data layout is the correct starting point for 2023 historical-file interpretation. The current v1.18 commercial product is a different, later specification state and must not be projected backwards. In particular, the FAO quantity-unit descriptions conflict across versions: v1.11/v1.12/v1.14/v1.15 describe share quantities, while v1.18 describes contract units. This discrepancy must be reconciled against actual records and historical lot-size data before quantity or notional calculations.
+
+A future replay result should be classified at least as:
+- **FILE_INTEGRITY_VERIFIED:** all files match their trigger MD5 and byte-size metadata;
+- **ORDER_EVENTS_RECONSTRUCTED:** order events parsed and order IDs linked;
+- **TRADE_LINKAGE_VERIFIED:** buy/sell order references resolve where the source format requires them;
+- **EVENT_ORDERING_UNVERIFIED:** same-timestamp/tied event order lacks an authoritative guarantee;
+- **QUANTITY_UNITS_UNVERIFIED:** segment/date-specific unit interpretation has not been reconciled;
+- **DETERMINISTIC_REPLAY_VERIFIED:** only after ordering and quantity semantics are validated against authoritative sequencing or source records.
+
+These are proposed research classifications only, not code-level enums or a finalized architecture decision.
+
+## 11. Corrections and status
+
+- Earlier draft wording that described historical order/trade files as having "consistent sequencing" has been removed. The reviewed public specifications do not document a per-event sequence field or explicit equal-timestamp ordering guarantee.
+- Trigger-file MD5 and byte size validate file-copy integrity; they do not certify exchange event completeness.
+- The direct CM and FO sample ZIP links are public links on NSE's current paid historical-data page, but the ZIP contents were not fetched or inspected in this environment. They are not treated as inspected 2023 research-data samples.
+- The v1.11 (15 December 2023) Research Data layout and the separate v1.11 (20 June 2022) archived document must be distinguished by exact URL and document date.
