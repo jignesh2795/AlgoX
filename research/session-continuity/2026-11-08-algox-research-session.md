@@ -725,3 +725,27 @@ PX-025 now contains **275 normative requirements and 490 proposed acceptance sce
 All acceptance cases are proposed only; no engine, broker, paper account, live account or strategy was run.
 
 No broker connection, market-feed subscription, paper/live order, code change, paid service, PR or merge to main was performed.
+
+
+## 33. Cross-mode conformance testing and replay verification (2026-11-08)
+
+PX-2026-043 defines the conformance harness contract for verifying PX-042 across BACKTEST, PAPER, SHADOW and fake LIVE adapters.
+
+### Key design decisions
+
+- Compare shared domain invariants exactly; compare fills/timing/external outcomes against mode-specific contracts. Do not demand identical fills.
+- Use an immutable canonical scenario fixture, a golden domain trace and separate mode-specific outcome traces.
+- Classify differences as EXACT, INVARIANT, MODE_EXPECTED, DATA_VARIANCE, EXECUTION_VARIANCE, MODEL_VARIANCE, EXTERNAL_STATE_VARIANCE or UNEXPLAINED.
+- Hard mode-isolation, risk, idempotency, order-state and accounting failures force NON_CONFORMANT regardless of aggregate pass rate.
+- Replay manifests pin fixture/data hashes, strategy/config, risk policy, contract crosswalk, scheduler/clock, adapters/models, seed and event-log version.
+- Fake adapters must never fall back to real endpoints. Replay supports delayed/duplicate/out-of-order events, gaps, checkpoints/restarts and fault injection.
+- Property/metamorphic tests verify fill bounds, unique economic event accounting, position roll-forward, ledger arithmetic, idempotency and mode isolation.
+- Captured live events replayed through fake adapters remain synthetic replay evidence, not new broker executions.
+
+### Requirements and tests
+
+PX-025 now contains **293 normative requirements and 520 proposed acceptance scenarios**:
+- R-276–R-293 cover layered conformance, immutable fixtures, golden traces, divergence classes, hard gates, pinned replay manifests, event idempotency, delay/reordering/gaps, consistent checkpoints, fake-only adapters, explicit failure injection, property tests, isolated mode epochs, semantic parity, conformance outcome labels, immutable test evidence, synthetic live replay and hard promotion criteria.
+- AT-491–AT-520 cover shared fixtures, equivalent gate decisions, expected fill drift, false P&L parity, forbidden live adapter, fake fixture error, deterministic seed replay, duplicate fills, cancel/fill races, stream gap, checkpoint consistency, credential/mode isolation, paper/live transitions, shared gate UNKNOWN, mode-specific evidence, fee drift, event ordering, property counterexamples and hard-failure release gating.
+
+All are proposed acceptance cases; no conformance harness, broker, paper account or live account was run.
