@@ -622,3 +622,29 @@ PX-025 now contains **197 normative requirements and 370 proposed acceptance sce
 These are proposed acceptance tests only. No historical data files were downloaded and no backtest was run.
 
 No broker/account/market-feed access, member portal login, code implementation, paid service, PR or merge to main was used.
+
+
+## 27. Point-in-time security universe and index membership reconstruction (2026-11-08)
+
+PX-2026-039 audits the distinction between public index-level history, point-in-time constituent membership, dated reconstitution events and licensed constituent/weight data.
+
+### Findings
+
+- NSE historical reports expose historical index levels and TRI values. NSE Indices FAQ says NIFTY 50 historical data is available from 3 July 1990 and its historical series evolves the constituent set over time; that does not itself disclose exact constituents/weights for every date.
+- NSE Indices separately describes constituent data with company identifiers, market capitalization, weights and prices as an index data product and directs customers to licensing. It reserves rights over index compilation/composition.
+- The current reconstitution calendar publishes index-specific scheduled cadence. For Nifty 50, the May 2026 methodology uses six-month data ending January/July, with implementation on the last trading day of March/September and four weeks' notice for scheduled replacements. Other indices have different calendars.
+- Nifty 50 allows ad-hoc change for merger/demerger, delisting, capital restructuring, BZ-series move, withdrawal of F&O permission, suspension and specified regulatory events. The scheduled maximum five additions per calendar year has explicit exceptions for certain forced exclusions.
+- The public press-release archive provides dated notices. Example: 10 August 2026 notice implemented Wipro exclusion and BSE inclusion in Nifty 50 effective 30 September 2026 (close 29 September); it gives rationale and F&O eligibility condition.
+- Press releases can reconstruct additions/deletions when the seed membership and full event chain exist, but they do not automatically provide daily weights/IWF/share counts. Exact point-in-time portfolio weights require the relevant authoritative data source and entitlement.
+
+### Requirements and tests
+
+PX-025 now contains **216 normative requirements and 400 proposed acceptance scenarios**:
+- R-198–R-216 cover index levels vs membership, methodology version, calendar vs event, announcement/effective time, append-only event ledger, seed/event completeness, membership vs weights/IWF, index-specific criteria, historical eligibility inputs, parent-child dependency, ad-hoc reconstitution, suspension/delisting retention, exception-aware caps, session boundary, divisor separation, press releases vs full weight data, licensing provenance, historical methodology and explicit point-in-time completeness gate.
+- AT-371–AT-400 cover index levels without members, current constituent backfill, seed/event reconstruction, announcement vs effective time, calendar revisions, Nifty 50 rule, methodology revisions, parent/child timing, missing parent data, eligibility/impact cost, replacement cap, forced exits, corporate actions, F&O eligibility, BZ series, postponed/nullified changes, conflicting notices, IWF changes, weight drift, weight alignment, event-only archive versus weights, divisor, schema versions, licensing, historical universe and incomplete point-in-time replication.
+
+### Data access boundary
+
+No separate constituent-data subscription/licence was acquired and no historical membership files were downloaded. Exact member/weight reconstruction must remain UNKNOWN where the seed snapshot, full event history or authorized constituent/weight dataset is missing. A continuous Nifty index level series is not a substitute.
+
+No member portal, broker endpoint, paid data service, code implementation, PR or merge to main was used.
