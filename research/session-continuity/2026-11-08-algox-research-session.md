@@ -417,3 +417,31 @@ All are proposed acceptance scenarios; no tests or broker API calls were made.
 Required margin, client upfront/peak verification requirement, actual collected collateral, available funds, reported collection, utilized margin, shortfall and settlement-confirmed release are separate facts. A calculator or available-balance response does not prove actual collection.
 
 No broker/clearing endpoint, account, sandbox, real order, code change, paid service, PR or merge to `main` was used.
+
+
+## 19. Clearing margin reports, short allocation and PRISM risk enforcement (2026-11-08)
+
+PX-2026-031 reviews NSE Clearing's current UDiFF catalogue, client margin/short allocation page, PRISM/violations page and payment-of-margin page.
+
+### Key findings
+
+- UDiFF standardizes Trade, STT, CTT, Stamp Duty, Position, Obligation, Margin, Penalty and Settlement Master report families. The catalogue shows versioned circular updates, including an option-premium margin-file update in NCL/CMPT/65315 (29 Nov 2024).
+- The current client-margin reporting page specifies at least four randomly selected intraday snapshots, fixed BOD parameters for those verification snapshots, and SPAN/ELM plus net option premium payable at the snapshot.
+- EOD margin, peak margin across snapshots, reported collection and collateral available must remain independent values.
+- Clearing Members allocate collateral at TM Prop/CP/client and segment scope. Where client allocated/re-pledged collateral is insufficient, member proprietary collateral may be blocked and deemed allocated; that is not client-paid collateral.
+- Short allocation compares the minimum upfront client collection requirement against the defined client collateral value; T+1/T+2 collectible margins are excluded from this particular short-allocation metric.
+- Penalty comparison preserves EOD shortfall, peak shortfall and highest intraday/EOD short allocation. Non-reporting is treated similarly to 100% short reporting.
+- Reporting upload may be allowed to T+5 working days with sign-off on the sixth working day; this is a reporting window, not an upfront-collection grace period.
+- PRISM reports 70%, 80%, 90% TM effective-collateral utilization warnings and 100% Trading Member facility withdrawal. These are member-level controls, not universal retail-client RMS thresholds.
+
+### Requirements and test amendments
+
+PX-025 now contains **88 normative requirements and 150 proposed acceptance scenarios**:
+- R-077–R-088 add UDiFF parser versioning, snapshot evidence, EOD/peak/short-allocation separation, collateral allocation, deemed member allocation, short-allocation definition, three-part penalty comparison, reporting deadline, non-reporting, member-level PRISM scope, CM/TM violation distinction and evidence-backed enforcement.
+- AT-131–AT-150 cover unknown UDiFF version, option-premium file update, T+0 report versioning, snapshot completeness, MG report scope, collateral allocation, deemed allocation, short allocation, T+5 reporting, non-reporting penalty, peak/EOD comparison and PRISM threshold behaviour.
+
+### Data limitation
+
+The UDiFF catalogue page was reviewed. The Annexure B XLSX workbook could not be parsed by the connector and ZIP attachments were unavailable, so field-level layouts and sample rows were not inspected. Any future parser work must close this evidence gap before implementation.
+
+No member portal, broker/clearing endpoint, sandbox, order, code implementation, paid service, PR or merge to `main` was used.
