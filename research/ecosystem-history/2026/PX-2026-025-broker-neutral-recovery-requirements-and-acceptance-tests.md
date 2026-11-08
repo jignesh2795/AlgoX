@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **147 normative requirements (R-001–R-147) and 280 proposed acceptance scenarios (AT-001–AT-280)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **162 normative requirements (R-001–R-162) and 310 proposed acceptance scenarios (AT-001–AT-310)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1145,3 +1145,82 @@ PX-025 now contains **147 normative requirements (R-001–R-147) and 280 propose
 - The complete current schema and code lists for all variants are not closed by the documents reviewed.
 - The standalone `Qtyfreeze.csv`/`fo_mktlots.csv` lifecycle includes discontinuation and later reintroduction notices; the current report catalogue and route-specific precedence must be verified at integration time.
 - Field-level parser implementation remains deferred; no inferred mapping is to be promoted as authoritative.
+
+## 22. Cross-provider instrument identity and effective-dated contract mapping (2026-11-08)
+
+PX-2026-036 distinguishes canonical exchange contract identity from provider aliases for Kite, Upstox and Dhan. Official provider master documentation was reviewed; daily files were not downloaded. See [PX-2026-036 — Cross-provider instrument identity and effective-dated contract mapping](PX-2026-036-cross-provider-instrument-identity-and-effective-dated-contract-mapping.md).
+
+### Additional normative requirements
+
+**R-148 — Canonical instrument identity is independent of provider aliases.** The system MUST assign an internal immutable canonical identity to each underlying/security and listed contract. Broker tokens, provider keys, symbols and exchange-specific IDs MUST be stored as provider-scoped aliases, not used as a universal canonical ID.
+
+**R-149 — Provider aliases are namespaced by provider, API version and segment.** Every provider alias MUST retain provider identity, API/schema version, exchange/segment scope and raw provider identifier. Numeric equality or string equality across providers MUST NOT be treated as evidence that two aliases identify the same contract.
+
+**R-150 — Alias validity is effective-dated.** Every alias MUST retain source publication/observation time and its valid-from/valid-to interval. Retired, expired or superseded aliases MUST remain available for historical reconciliation but MUST NOT authorize current order submission.
+
+**R-151 — Underlying identity uses authoritative security/index mapping.** Equity underlyings SHOULD be mapped through ISIN where supplied and verified. Indices MUST use an official exchange/index identity. If a stable underlying key is missing or ambiguous, the mapping MUST remain UNKNOWN; display company/index name alone is insufficient.
+
+**R-152 — Derivative identity requires complete contract terms.** A derivative canonical identity MUST include exchange, segment, venue/admission type, underlying identity, future/option family, expiry, strike, option type and applicable series/type fields. A match on symbol/root/expiry alone MUST NOT authorize a contract.
+
+**R-153 — Strike, expiry and contract terms use exact normalization.** Strike and price-like contract terms MUST use exact-decimal normalization. Expiry must be interpreted using the exchange trading date/calendar without timezone drift. Raw source values and normalized values MUST both be retained with parser version.
+
+**R-154 — Alias mapping requires exact, unique source-supported resolution.** A provider alias MAY be linked to a canonical contract only when the exact required identity attributes agree and exactly one candidate is valid for the effective interval. Fuzzy symbol/name/token matching MUST NOT produce an orderable alias.
+
+**R-155 — Contract attributes are cross-checked after identity match.** Even when identity keys match, lot/multiplier, quantity unit, tick, freeze, settlement mode, expiry/status and venue attributes MUST be compared. Any unexplained conflict MUST result in ATTRIBUTE_CONFLICT/UNKNOWN and block order admission.
+
+**R-156 — Provider instrument masters are separately versioned inputs.** Kite, Upstox and Dhan instrument masters MUST be ingested and versioned independently, with source URL/channel, capture/effective time, hash, schema and parser version. One provider's master MUST NOT be substituted for another provider's alias or capabilities.
+
+**R-157 — Venue and Admission Type are part of the canonical route.** A contract's exchange/venue admission type MUST be part of mapping and order-route validation. An otherwise identical underlying/expiry/strike on a different venue or admission path MUST remain a distinct route and MUST NOT be silently substituted.
+
+**R-158 — Corporate-action contract transitions are linked, not overwritten.** Changes to strike, lot, multiplier, expiry, quantity or contract terms from a corporate action MUST create an effective-dated successor/adjusted contract relationship with source evidence. The predecessor identity and all historical provider aliases MUST remain immutable for historical reconciliation.
+
+**R-159 — Expired/suspended contracts remain historical but non-tradable.** Expired, suspended, delisted or retired contract aliases MUST remain resolvable for old orders/trades but MUST fail current order-admission validity. Presence in a historical source file cannot make the contract currently tradable.
+
+**R-160 — Alias collisions and overlapping validity are quarantined.** If one provider alias maps to more than one canonical contract over an overlapping validity interval, or if a provider alias changes identity without a source-supported effective transition, the mapping MUST be quarantined as AMBIGUOUS/CONFLICT. No arbitrary first/last row selection is permitted.
+
+**R-161 — Crosswalk snapshots are atomic and reproducible.** A promoted provider-to-canonical crosswalk MUST retain the exact exchange and provider source files, hashes, schema/parser/mapping-policy versions, row references, effective times, validation report and decision trace. A partial provider master set MUST NOT be combined with a previous crosswalk to claim current complete mapping.
+
+**R-162 — Unknown identity blocks order submission.** If the underlying, contract, venue, provider alias, lot/unit or effective-date mapping is missing, stale or contradictory, the order-admission gate MUST return UNKNOWN/blocked. It MUST NOT guess a security ID, reuse a stale token or fall back to a similar symbol.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-281 | Same listed contract appears in NSE, Kite, Upstox and Dhan masters with different provider identifiers | Map each exact source alias to one canonical contract; preserve identifiers separately |
+| AT-282 | Numeric Kite instrument token equals a numeric Dhan security ID by coincidence | Keep provider namespaces separate; no identity match from numeric equality |
+| AT-283 | Same trading symbol exists for current and next expiry | Resolve using full expiry/contract terms; no symbol-only selection |
+| AT-284 | Same underlying/expiry has multiple option strikes | Resolve exact decimal strike; reject ambiguous root/expiry match |
+| AT-285 | Same strike/expiry has CE and PE contracts | Resolve option type separately; no call/put alias collision |
+| AT-286 | Equity underlying has same display symbol on two venues but a verified same ISIN | Preserve venue route separately while linking the underlying security identity |
+| AT-287 | Underlying display symbol changed but ISIN/security identity remains the same | Preserve historical symbol aliases and map only through the authoritative underlying crosswalk |
+| AT-288 | Index underlyings have no ISIN | Use official index identity; do not invent an ISIN or use display name alone |
+| AT-289 | Provider master contains a contract absent from the current exchange contract universe | Quarantine as unmatched/unsupported; do not auto-create an exchange-listed canonical contract |
+| AT-290 | Exchange master contains a valid contract absent from one provider master | Preserve canonical contract with no alias for that provider; do not reuse another provider's token |
+| AT-291 | Provider aliases match contract terms but lot size differs | ATTRIBUTE_CONFLICT/UNKNOWN; no orderable mapping |
+| AT-292 | Provider aliases match but tick size/freeze value differs | Preserve both observations and resolve source/effective scope; no silent selection |
+| AT-293 | Broker master has quantity in lots while exchange file has quantity units | Preserve raw units and apply only a verified one-time conversion; otherwise UNKNOWN |
+| AT-294 | Option strike is parsed as binary float and produces a precision mismatch | Reject unsafe normalization; use exact decimal source representation |
+| AT-295 | Expiry date from provider uses a timestamp that shifts to previous date under local timezone conversion | Preserve exchange date semantics; reject timezone-drifted contract mapping |
+| AT-296 | Same provider alias appears mapped to two contracts with overlapping validity intervals | Quarantine alias as AMBIGUOUS; block dispatch |
+| AT-297 | Provider alias changes on a new daily master with a documented effective transition | Retire old alias for new orders but retain historical mapping and link to current alias |
+| AT-298 | Old expired alias is used in a current order request | Reject current tradability while keeping it available for historical trade reconciliation |
+| AT-299 | Corporate action changes contract strike and lot size | Create linked predecessor/successor canonical contracts with effective date; do not overwrite old terms |
+| AT-300 | Merger forces closeout and a successor security is listed | Preserve forced-closeout event and new underlying identity; do not alias old derivative contract to new one |
+| AT-301 | NSE and BSE rows share underlying/expiry/strike but have different Admission Type | Keep venue-specific canonical routes and reject unsupported route substitution |
+| AT-302 | BSE-exclusive provider alias is offered to an adapter/session configured only for NSE | Reject venue mismatch despite matching underlying and contract terms |
+| AT-303 | Provider API version changes instrument alias schema | Create a new source schema profile; do not parse with previous API/master mapping |
+| AT-304 | Provider master file is stale while exchange contract master is current | Alias freshness UNKNOWN; no new order even if prior crosswalk once matched |
+| AT-305 | Symbol/name fuzzy match finds a single apparent candidate but ISIN/security ID is missing | Keep UNKNOWN; fuzzy search result cannot authorize mapping |
+| AT-306 | Provider master has duplicate identical key rows with differing status/effective time | Preserve both rows and resolve by explicit source effective rules; otherwise quarantine |
+| AT-307 | Provider instrument ID is reused or collides in a different segment/date scope | Scope alias by provider, API version, segment and effective interval; never global lookup |
+| AT-308 | Lot/multiplier changes after a contract adjustment | Invalidate old alias/contract approval and create a date-effective adjusted contract mapping |
+| AT-309 | One provider alias maps to two canonical contracts because option type was omitted | Reject ambiguous mapping; require option type in the complete contract identity |
+| AT-310 | A crosswalk snapshot contains missing provider master, duplicate key or unresolved venue mapping | Do not promote partial crosswalk; retain UNKNOWN/quarantine report and block order admission |
+
+PX-025 now contains **162 normative requirements (R-001–R-162) and 310 proposed acceptance scenarios (AT-001–AT-310)**. These are proposed tests only; no provider master files, live API calls, parser or crosswalk implementation were executed.
+
+### Provider-master source clarifications
+
+- Kite's daily CSV master includes token/contract attributes but its `last_price` is not real-time; its docs warn instrument tokens can be reused after derivative expiry.
+- Upstox recommends JSON, marks CSV as deprecated, identifies `instrument_key` as unique for each instrument, warns exchange_token may be reused, and provides separate BOD/suspended/MTF/MIS files.
+- Dhan publishes compact/detailed/segmentwise master surfaces; the detailed file includes underlying security ID and derivative attributes. A global all-time uniqueness guarantee for raw Dhan securityId was not established.
