@@ -640,3 +640,35 @@ No licence was accepted, no subscription purchased, no feed connected and no dat
 ### Open rights items
 
 Before customer-facing display, archive, redistribution or commercial deployment, obtain the current signed terms for each broker/API account and any required exchange/data-vendor licence. The public Upstox and Dhan material reviewed here does not fully settle API-feed rights. UNKNOWN is not permission.
+
+## 28. Broker API authentication, token lifecycle and static-IP controls (2026-11-08)
+
+PX-2026-040 audits current Kite Connect, Upstox and DhanHQ authentication/token documentation, static-IP implementation rules and the NSE implementation standards.
+
+### Provider findings
+
+- **Kite:** login returns a short-lived request_token exchanged with api_key and SHA-256 checksum using api_secret. Access token expires at 6:00 AM the next day unless invalidated earlier. DELETE /session/token and Kite Web master logout invalidate the session. Kite warns api_secret and access_token must not be exposed client-side/publicly.
+- **Kite static IP:** the newer dedicated support article says static IP is required for API-based order placement from 1 April 2026; WebSocket market data, orderbook and positions can be accessed from any IP. Primary IP is mandatory, secondary optional; updates are limited to once per calendar week. The older FAQ still carries a 1 April 2025 date and is recorded as stale.
+- **Upstox:** OAuth authorization-code flow with exact registered redirect URI and optional state. The authorization code is single-use even if token exchange fails. Access tokens expire at 3:30 AM the next day. DELETE /logout invalidates the current active session. Client secret must remain confidential.
+- **Upstox static IP:** user-level configuration applies across OAuth clients; primary required, secondary optional; one update per calendar week. Successful update invalidates existing access tokens, requiring OAuth again. Registered addresses support IPv4/IPv6.
+- **Dhan:** individual access token is valid for 24 hours. RenewToken creates a new 24-hour token only for active tokens generated from Dhan Web. Individual API key/secret is valid for 12 months; API-key/consent authentication is a separate flow, and its token renewal by RenewToken is not established. Dhan allows up to 25 consentAppId per day but only one token at a time.
+- **Dhan static IP:** primary/secondary, each individual has a unique static IP, IPv4/IPv6 supported, update lock is seven days. The reviewed docs say order placement APIs require the registered IP; order/trade detail reads do not.
+- **NSE:** static IP is mapped to API key(s), with a primary and optional secondary under NSE implementation standards. Broker-side scopes/endpoint enforcement remain provider-specific.
+
+### Security design decisions
+
+Keep app key/secret, one-time auth code/request token, access token, partner credentials and static-IP registration distinct. Use a secure secret store, keep secrets/tokens out of Git/client-side bundles/logs, redact callbacks and HTTP traces, and bind every session to provider/account/app/environment.
+
+A valid token and registered IP are separate checks. Before dispatch, validate token expiry/revocation, account permissions, registered primary/secondary, and actual public NAT egress. IP changes may have a cooldown and can revoke tokens (explicitly so for Upstox). Auth failures after a potentially dispatched command must invoke PX-024/PX-025 reconciliation before any retry.
+
+### Requirements and tests
+
+PX-025 now contains **218 normative requirements and 420 proposed acceptance scenarios**:
+- R-206–R-218 cover credential class separation, provider-specific auth, single-use authorization, secret custody, provider expiry/renewal, revocation evidence, Dhan API key vs access token expiry, static-IP scope, primary/secondary egress, cooldown/token invalidation, actual egress verification, no blind order retry and auditable credential-compromise response.
+- AT-396–AT-420 cover expired/reused Kite request tokens, 6 AM expiry/master logout, leaked secrets, static IP and endpoint scope, Kite cooldown, Upstox redirect/state/single-use code/3:30 AM/logout/IP token invalidation/cooldown, Dhan 12-month key/24-hour token/Web-only renewal/consent limit/static-IP requirements and 401/403 after uncertain placement.
+
+All are proposed deterministic tests. No credentials, account sessions, IP registration, broker API or order was used.
+
+### Open issues
+
+Dhan general logout/revocation for all token types and API-key/consent token renewal were not established. Upstox read-endpoint IP enforcement scope is not fully specified in the reviewed docs. Kite has an older FAQ with a stale static-IP date. Current account-specific developer-console and agreement state must be reviewed before any real deployment.
