@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **205 normative requirements (R-001–R-205) and 395 proposed acceptance scenarios (AT-001–AT-395)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **218 normative requirements (R-001–R-218) and 420 proposed acceptance scenarios (AT-001–AT-420)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1442,3 +1442,74 @@ PX-025 now contains **205 normative requirements (R-001–R-205) and 395 propose
 - Upstox's website/app terms are not treated as a complete API data licence; current API/account terms remain unverified.
 - Dhan public support confirms the separate Data API subscription and fee, but not downstream rights; account API terms remain unverified.
 - Kite's five-year clause is audit-log retention, not raw-market-data retention permission.
+
+## 26. Broker API authentication, token lifecycle and static-IP controls (2026-11-08)
+
+PX-2026-040 reviews official Kite Connect, Upstox and DhanHQ authentication/static-IP documentation and NSE implementation standards. See [PX-2026-040 — Broker API authentication, token lifecycle and static-IP controls](PX-2026-040-broker-api-authentication-token-lifecycle-and-static-ip-controls.md).
+
+### Additional normative requirements
+
+**R-206 — App credentials and user access tokens are separate credential classes.** The system MUST distinguish API key/client ID, API secret/client secret, one-time request token/authorization code, access token/JWT and partner credentials. Their issuer, purpose, validity and revocation semantics MUST remain separate. An access token MUST NOT be treated as an app secret or vice versa.
+
+**R-207 — Authentication flow is provider- and version-specific.** Kite request-token/checksum exchange, Upstox OAuth authorization-code flow and Dhan individual/partner consent flows MUST be implemented as distinct adapter contracts. The system MUST NOT impose a fictitious common refresh-token or user-login flow on all providers.
+
+**R-208 — One-time authorization tokens are single-use and expiry-aware.** Kite request tokens and Upstox authorization codes MUST be treated as one-time credentials with provider-specific expiry semantics. A consumed/failed/expired code MUST NOT be blindly reused; a new documented user authorization flow is required.
+
+**R-209 — API secrets and session tokens are never exposed to clients or logs.** API secrets, partner secrets, access tokens, TOTP seeds and authorization codes MUST remain out of source repositories, client-side bundles, prompts, user-visible logs, crash dumps and telemetry. Kite api_secret and Upstox client_secret MUST be stored only in an approved secret store/backend boundary.
+
+**R-210 — Token lifetime and renewal rules are provider-specific.** The token manager MUST preserve exact provider expiry time, timezone, issue time and permitted renewal method. Kite next-day 6 AM expiry, Upstox next-day 3:30 AM expiry and Dhan 24-hour validity MUST not be normalized to one fixed duration or assumed refresh policy.
+
+**R-211 — Revocation and logout state must be explicit.** Kite DELETE /session/token, Kite master logout, Upstox DELETE /logout and any documented static-IP-triggered token invalidation MUST create explicit revoked-session evidence. Dhan token revocation semantics remain UNKNOWN unless provider documentation or account contract establishes them; expiry is not the same as verified revocation.
+
+**R-212 — Dhan API key and secret expiry are distinct from access-token expiry.** Dhan individual API key/secret (documented 12-month validity) MUST have a separate lifecycle from its 24-hour access token. RenewToken MUST be used only for active Dhan Web-generated tokens explicitly supported by the docs; the system MUST NOT assume the same renewal path works for API-key/consent-generated tokens.
+
+**R-213 — Static IP is a provider-scoped order-access control.** The system MUST model static-IP requirement by provider, account/user/app/API key, endpoint family and effective date. A read-only market-data or portfolio API MUST NOT be blocked solely because an order-endpoint rule applies elsewhere, and an order request MUST NOT bypass a required registered IP.
+
+**R-214 — Primary and secondary egress addresses are explicit.** The system MUST retain primary and optional secondary registered public IPv4/IPv6 addresses, provider registration scope, effective/cooldown timestamps and actual egress routing evidence. Private interface/container IPs MUST NOT be submitted as though they were the public address seen by the broker.
+
+**R-215 — Static-IP cooldown and token-invalidation side effects are enforced.** IP changes MUST observe the applicable provider cooldown (Kite/Upstox one calendar-week update; Dhan seven-day lock as documented). An Upstox successful IP update MUST mark existing tokens invalid and require fresh OAuth. No request may use a stale IP/token combination after an IP change.
+
+**R-216 — Dispatch checks actual egress identity.** Immediately before an order API call, the adapter MUST verify that the actual public egress route corresponds to a registered primary/secondary address under that provider's rules. If NAT, IPv4/IPv6 routing, VPN, proxy or failover changes the egress, order dispatch MUST remain blocked until the provider registration matches.
+
+**R-217 — Authentication failure does not authorize blind command retry.** Expired/revoked token, invalid IP, 401/403, API-app disablement or permission errors MUST transition auth state explicitly. The system MUST preserve the associated command/attempt status and apply PX-024/PX-025 uncertain-submission reconciliation before retrying any placement/modification that may already have reached the broker.
+
+**R-218 — Credential compromise and rotation are auditable security incidents.** A suspected leak, unauthorized token use, account closure, app deactivation or provider revocation MUST trigger a security incident: stop affected dispatch, quarantine credentials, perform only documented revocation/rotation, reauthenticate with user approval and retain non-secret audit evidence. The system MUST NOT invent undocumented global revoke/rotate operations.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-396 | Kite login returns a request_token that is older than the provider's few-minute window | Reject as expired; require a new user login; do not exchange stale token |
+| AT-397 | Kite request_token has already been consumed once | Reject reuse; require fresh login and a new one-time request_token |
+| AT-398 | Kite access token reaches 6 AM next day or master logout occurs | Mark token EXPIRED/REVOKED and block authenticated dispatch |
+| AT-399 | Kite api_secret is present in client/mobile bundle, Git or logs | Treat as compromised; stop affected integration, redact evidence and require documented secret remediation |
+| AT-400 | Kite API order is sent from unregistered egress after 1 April 2026 enforcement | Block/reject order placement; preserve actual public egress and registered-IP mismatch |
+| AT-401 | Kite market-data WebSocket/read-only orderbook call originates from a non-whitelisted IP | Apply current provider rule: read-only endpoints remain available from any IP; do not incorrectly treat it as an order-placement violation |
+| AT-402 | Kite static IP changes a second time within the same calendar week | Reject/hold update according to cooldown; do not attempt alternate API-key workaround |
+| AT-403 | Upstox authorization redirect_uri differs from the registered app URI | Reject authorization/token exchange; do not accept a near-match |
+| AT-404 | Upstox callback returns a state value different from the initiating session | Reject callback as uncorrelated/possible CSRF; do not exchange code |
+| AT-405 | Upstox authorization code exchange fails once and the same code is retried | Reject reuse because the code is single-use even after failure; initiate fresh user approval |
+| AT-406 | Upstox access token reaches 3:30 AM following day | Mark EXPIRED using provider timezone/time semantics and require a new authorization/token flow |
+| AT-407 | Upstox DELETE /logout succeeds | Mark the active user session/token REVOKED; subsequent calls require login again |
+| AT-408 | Upstox primary/secondary IP is updated successfully | Mark existing access tokens invalid, read response flag, and complete OAuth again before use |
+| AT-409 | Upstox IP update is attempted twice within a calendar week | Enforce provider cooldown; do not rotate OAuth clients to bypass user-level limit |
+| AT-410 | Upstox two OAuth clients are registered but user-level IP differs for only one | Apply the same user-level registered IP to all OAuth clients; flag any route mismatch |
+| AT-411 | Dhan API key/secret reaches 12 months from generation | Mark app credentials expired; require new documented credential/consent flow |
+| AT-412 | Dhan access token reaches 24-hour expiry | Mark token EXPIRED and block use; do not assume silent refresh |
+| AT-413 | Dhan RenewToken is called for an active token generated from Dhan Web | Replace the old token, record old-token invalidation and store the new 24-hour expiry |
+| AT-414 | Dhan RenewToken is attempted after token expiry | Preserve failure; require new supported token-generation flow; do not loop renewal |
+| AT-415 | Dhan RenewToken is attempted for API-key/consent-generated token without documented support | Mark operation unsupported/UNKNOWN; do not assume Dhan Web renewal semantics apply |
+| AT-416 | Dhan consent flow creates multiple consentAppIds or attempts parallel tokens | Enforce the documented 25-per-day limit and one-token-at-a-time behavior; do not create parallel live sessions |
+| AT-417 | Dhan order-placement API call originates from unregistered public IP | Block order placement; compare account's registered primary/secondary with actual egress |
+| AT-418 | Dhan order/trade detail read endpoint originates from a different IP | Apply documented endpoint scope; do not misclassify the read call as an order-placement IP violation |
+| AT-419 | Dhan static IP was changed within the previous seven days | Block further modification until the provider's next allowed date; preserve cooldown evidence |
+| AT-420 | Broker returns 401/403/IP mismatch after a placement attempt times out | Mark auth/network state separately from command outcome; reconcile uncertain order state before retrying placement |
+
+PX-025 now contains **218 normative requirements (R-001–R-218) and 420 proposed acceptance scenarios (AT-001–AT-420)**. These are proposed deterministic scenarios; no credentials, tokens, account sessions, IP registrations, broker APIs or orders were used.
+
+### Provider source limitations
+
+- Kite's older FAQ contains an earlier 1 April 2025 date; its newer dedicated static-IP page states 1 April 2026.
+- Upstox static-IP registration is user-level and a successful change invalidates access tokens; exact read-only IP enforcement scope remains less explicit.
+- Dhan renews only active Dhan Web-generated tokens under the documented RenewToken route; API-key/consent token renewal and general revoke semantics remain unverified.
+- API-key rotation and global revocation remain provider/account-specific where public docs do not establish the operation.
