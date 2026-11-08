@@ -270,9 +270,9 @@ PX-2026-025 has translated the provider comparison in PX-024 into a proposed req
 
 ### Scope and deliverables
 
-- 30 normative requirements cover durable intent/attempt evidence, unknown command outcomes, no blind retry, identity separation, order/trade reconciliation, event provenance, stream recovery, conflicts, child orders, session retention, risk gating, exact units, concurrency fencing and reproducibility.
-- 35 deterministic acceptance scenarios cover lost acknowledgements, proven non-dispatch, delayed visibility, zero/one/multiple correlation matches, partial fills, duplicate trades, cancel/modify races, reconnect gaps, session rollover, process crashes, multi-worker races, manual orders, sliced orders, unit discrepancies and unknown statuses.
-- The document defines candidate reconciliation outcomes and algorithm phases, while explicitly deferring final enums, schema, storage technology and adapter interfaces.
+- 33 normative requirements cover durable intent/attempt evidence, unknown command outcomes, no blind retry, identity separation, order/trade reconciliation, event provenance, stream recovery, conflicts, child orders, session retention, risk gating, exact units, concurrency fencing and reproducibility.
+- 43 deterministic acceptance scenarios cover lost acknowledgements, proven non-dispatch, delayed visibility, zero/one/multiple correlation matches, partial fills, duplicate trades, cancel/modify races, reconnect gaps, session rollover, process crashes, multi-worker races, manual orders, sliced orders, unit discrepancies and unknown statuses.
+- The document defines candidate reconciliation outcomes and algorithm phases, while explicitly deferring final enums, schema, storage technology and adapter interfaces. PX-026 adds provider-specific slicing/batch/compound-order semantics and extends PX-025 with R-031 through R-033 and AT-036 through AT-043.
 - Tests are specified only; no implementation exists in this workstream and no tests were executed.
 
 ### Requirements decision
@@ -286,3 +286,24 @@ PX-025 is proposed as a requirements input to the existing `ALG-ARCH-001` proven
 ### Status and boundaries
 
 Research specification completed. Provider contract gaps remain open; all 10 future implementation gates in PX-025 remain OPEN, PARTIAL or PROPOSED. No broker API, account, sandbox, real order, code change, paid service, PR or merge to `main` was used or authorized.
+
+
+## 14. Provider idempotency, slicing and compound-order recovery audit (2026-11-08)
+
+PX-2026-026 records an official-documentation audit of provider idempotency, per-request correlation semantics, auto-slicing, multi-order batches and compound/super-order hierarchies.
+
+### Provider-specific findings
+
+- **Kite:** optional `tag` is an identification/filter value, not a documented idempotency token. The response `guid` is described as unusable. Auto-slicing can return independent successful order IDs and per-slice errors in one response, up to the documented maximum of 10 slices.
+- **Upstox:** V3 single-order slicing returns multiple `order_ids`; optional tag length is 40 characters. The distinct V2 multi-order endpoint has required per-line `correlation_id` values unique within that payload (1–20 characters), and supports HTTP 207 / `partial_success` with per-line success/error results. This uniqueness rule is not a repeated-request idempotency guarantee.
+- **DhanHQ:** `correlationId` is a tracking field and the published correlation lookup returns one order object. The order-slicing endpoint is documented, but its response structure is not supplied in the reviewed page. Super Orders have a top-level order ID and nested entry/target/stop-loss legs.
+
+### Requirements and test amendments
+
+PX-025 has been amended with R-031 (per-child group outcome), R-032 (provider-scoped correlation uniqueness) and R-033 (independent child-set completeness), plus AT-036 through AT-043. Totals are now 33 requirements and 43 proposed fake-provider acceptance scenarios. None has been executed.
+
+### Current decision
+
+No reviewed provider documentation establishes safe cross-request deduplication for repeated placement after a lost acknowledgement. Continue to treat a possibly dispatched request as UNKNOWN and do not retry based only on a repeated tag/correlation value. Compound and sliced results require per-child reconciliation; incomplete child sets remain unresolved.
+
+No broker account, API, sandbox, real order, code implementation, paid service, PR or merge to `main` was used or authorized.
