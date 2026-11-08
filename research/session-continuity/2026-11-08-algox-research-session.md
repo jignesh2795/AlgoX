@@ -615,3 +615,28 @@ PX-025 now contains **192 normative requirements and 370 proposed acceptance sce
 - AT-341–AT-370 cover provider query windows, expired-contract data scope, Dhan ATM shifts/ranges, date inclusivity, missing OI, reversed/duplicate/gapped candles, corporate-action adjustment, roll lineage, lookahead and dataset revision reproducibility.
 
 No historical API call, market data collection or backtest was executed.
+
+## 27. Market-data rights, retention and distribution controls (2026-11-08)
+
+PX-2026-039 reviews NSE data policy, public Kite Connect API terms, Upstox website/app terms and Dhan Data API subscription documentation.
+
+### Findings
+
+- **NSE Data policy:** subscriber Relevant Agreements define intended use, handling and dissemination. Ownership remains with NSE/NSE Data; redistribution is only as agreed. Custom/composite financial indices and financial instruments require separate licensing; offline removable media requires prior approval. Non-commercial research still requires documented restrictions and confidentiality.
+- **Kite Connect:** public terms prohibit public display of live data, virtual/mock trading uses and redistribution. API content may not be permanently copied/cached with intent to redistribute. Kite requires usage trails/books/records/logs for at least five years or as required by law; this is not a five-year raw-data archive licence.
+- **Upstox:** public website/app Terms of Use describe content ownership and restrict commercial/public use of website materials without consent. This is not treated as a complete API-feed licence; API account terms remain UNKNOWN.
+- **Dhan:** public support docs show a separately subscribed Data API (₹499 plus taxes/month, auto-debited every 30 days); subscription confirms access mechanism, not redistribution/archive/commercial rights. Specific Data API terms remain UNKNOWN.
+- Website/app terms are not generalized to separately licensed broker APIs, and a paid/free API credential does not grant rights by implication.
+- SEBI retail API algo compliance is a separate deployment gate from data licensing.
+
+### Requirements and tests
+
+PX-025 now contains **205 normative requirements and 395 proposed acceptance scenarios**:
+- R-193–R-205 cover source rights manifest, no inferred downstream rights, purpose-specific use, display/redistribution, storage vs archive, audit log vs data retention, derived-data lineage, separate exchange/broker/website terms, index licensing, non-commercial research terms, termination/deletion, tenant/credential protection and separate algo regulation gate.
+- AT-371–AT-395 cover unknown agreements, Kite public display/mock trading/cache, five-year audit logs vs data archive, NSE licence/redistribution/offline media/research, Upstox API rights uncertainty, Dhan subscription vs downstream display, backtest storage, derived analytics, data termination, backups, public GitHub, tenant isolation, permitted end-user limits and separate SEBI algo deployment compliance.
+
+No licence was accepted, no subscription purchased, no feed connected and no data payload downloaded.
+
+### Open rights items
+
+Before customer-facing display, archive, redistribution or commercial deployment, obtain the current signed terms for each broker/API account and any required exchange/data-vendor licence. The public Upstox and Dhan material reviewed here does not fully settle API-feed rights. UNKNOWN is not permission.
