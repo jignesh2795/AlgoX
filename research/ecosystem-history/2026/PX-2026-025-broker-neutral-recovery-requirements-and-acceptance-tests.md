@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **192 normative requirements (R-001–R-192) and 370 proposed acceptance scenarios (AT-001–AT-370)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **205 normative requirements (R-001–R-205) and 395 proposed acceptance scenarios (AT-001–AT-395)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1370,3 +1370,75 @@ PX-2026-038 compares historical and expired-contract data across Kite, Upstox an
 | AT-370 | Historical dataset is re-fetched and values differ from the pinned source snapshot | Preserve original backtest dataset hash; create a new data revision and do not silently rewrite prior result |
 
 PX-025 now contains **192 normative requirements (R-001–R-192) and 370 proposed acceptance scenarios (AT-001–AT-370)**. These are deterministic proposed scenarios; no historical API request or backtest was executed.
+
+## 25. Market-data rights, retention and distribution controls (2026-11-08)
+
+PX-2026-039 reviews the NSE Data Sharing & Usage Policy, NSE Website Terms, public Kite Connect API terms, Upstox public platform terms and Dhan Data API access documentation. See [PX-2026-039 — Market-data rights, retention and distribution controls](PX-2026-039-market-data-rights-retention-and-distribution-controls.md).
+
+### Additional normative requirements
+
+**R-193 — Every market-data source has a rights manifest.** Every market-data source/product MUST have a versioned rights manifest identifying provider/exchange, exact API/feed, account/subscriber scope, governing agreement, effective dates, permitted purpose, storage/display/redistribution rights, geography, retention and deletion requirements. Missing agreement evidence MUST result in UNKNOWN.
+
+**R-194 — Technical API access does not imply downstream data rights.** The system MUST NOT infer public display, multi-user display, permanent archival, commercial use, onward API, resale or redistribution rights from a successful login, API token, free/paid subscription or ability to retrieve data. Each downstream use MUST be permitted by the applicable agreement.
+
+**R-195 — Internal, research, display and commercial purposes are distinct.** The rights resolver MUST distinguish private account use, internal research/backtesting, internal derived analytics, multi-user display, public display, commercial terminal/service, export/resale and index/financial-product creation. Permission for one purpose MUST NOT be generalized to another.
+
+**R-196 — Public display and redistribution are explicit gates.** Any operation that exposes raw or reconstructible market data to another person, public website, tenant, customer, API or bulk export MUST require explicit source-specific display/redistribution permission. The default for an unknown or restricted source is BLOCK.
+
+**R-197 — Storage, cache and archive permissions are separate.** The system MUST distinguish ephemeral processing, session cache, local account cache, long-term historical archive, backup/DR, replay and derived-data storage. A permission to call an API MUST NOT be interpreted as permission for permanent copies or indefinite caching.
+
+**R-198 — Audit-log retention is not market-data retention.** The system MUST store audit-log retention obligations separately from raw market-data retention rights. A requirement to retain access logs/books/records for a stated period MUST NOT be treated as a licence to retain the underlying market-data payload for the same period.
+
+**R-199 — Derived data inherits source restrictions unless cleared.** Indicators, OHLC aggregation, Greeks, analytics, signals, model features, training datasets and backtest outputs MUST retain source lineage and restrictions. Transformation, aggregation or removal of direct identifiers MUST NOT automatically be treated as permission to redistribute or commercialize the result.
+
+**R-200 — Exchange and broker terms are separately scoped.** The rights resolver MUST preserve exchange/data-vendor licences, broker API terms, account/end-user agreements and website/app terms as distinct sources. Website terms MUST NOT be blindly generalized to a separately licensed API feed; absence of API-specific terms MUST NOT be treated as permission.
+
+**R-201 — Index and financial-instrument creation requires separate rights review.** Any custom/composite financial index, benchmark or financial instrument constructed from exchange market data MUST be blocked until the relevant exchange/data licensor's separate licence/approval is recorded where required. A locally computed indicator MUST not be mislabeled as a licensed index.
+
+**R-202 — Non-commercial research permission is documented, not assumed.** A research, student, personal or not-for-profit purpose MUST NOT automatically grant a data licence, free archive right or permission to share results containing raw/reconstructible data. Any applicable non-commercial/research permission, confidentiality undertaking, fee waiver and restrictions MUST be recorded.
+
+**R-203 — Termination triggers rights-aware ingestion and deletion workflow.** Agreement expiry, API termination, source restriction change or account closure MUST trigger an evaluation of continued ingestion, cached data, archives, derived datasets, backup copies and replay access. The system MUST retain only data whose continued retention is permitted or independently required, and MUST preserve deletion/retention evidence.
+
+**R-204 — Rights checks cover users, tenants, exports and credentials.** Every data display/export/replay path MUST enforce authorized account/tenant/user scope. Credentials and client identifiers MUST remain confidential and MUST NOT be shared to multiplex a single-account data subscription to unrelated users. Data access audit records MUST identify source, actor, purpose, destination and time.
+
+**R-205 — Market-data licensing and retail-algo compliance are independent gates.** A future deployment review MUST evaluate market-data rights separately from SEBI/exchange retail-algo registration, empanelment and broker operational requirements. Passing a data licence gate MUST NOT imply algo approval; algo approval MUST NOT grant market-data ownership or redistribution rights.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-371 | Source has no identified agreement or account-specific rights record | UNKNOWN_BLOCKED for persistent storage, display, export and commercial use |
+| AT-372 | Kite Connect live market data is requested for a public website | PROHIBITED under published Kite terms; block public display |
+| AT-373 | Kite Connect data is requested for a virtual/mock-trading app or trading game | PROHIBITED under published Kite API terms |
+| AT-374 | Kite API response is cached permanently with intent to redistribute | PROHIBITED unless express permission/applicable law is evidenced |
+| AT-375 | Kite audit logs must be retained for five years | Retain audit logs per term, but do not infer five-year raw market-data archive permission |
+| AT-376 | NSE market data agreement allows private analysis but not public redistribution | Permit only documented private-analysis scope; block export/public display |
+| AT-377 | NSE data is used to construct a custom financial index without separate licence | PROHIBITED/UNKNOWN_BLOCKED; require the separate relevant NSE licence |
+| AT-378 | NSE Data subscriber asks to copy feed to offline removable media | Require the policy's prior approval and agreement evidence; otherwise BLOCK |
+| AT-379 | NSE Data is redistributed to another subscriber not named/allowed in the Relevant Agreement | Block redistribution; no implied sublicence |
+| AT-380 | Non-commercial researcher claims data should be free because the use is academic | Require documented research access/terms/confidentiality; no automatic exemption |
+| AT-381 | Upstox website-content terms are available but API-feed licence is not | Do not apply website clause as complete API policy; mark API redistribution/archive rights UNKNOWN |
+| AT-382 | Upstox API user requests multi-tenant live quotes through one account | Require explicit API/feed and end-user rights; block while agreement scope is unknown |
+| AT-383 | Dhan Data API subscription is active and paid | Treat as API access entitlement only; do not infer commercial redistribution or indefinite archive |
+| AT-384 | Dhan feed is exposed through an external user-facing dashboard | Require written display/redistribution permission; subscription alone does not PASS |
+| AT-385 | Historical data is stored for internal backtesting | Allow only when the source agreement permits historical retention/replay; record retention scope and dataset provenance |
+| AT-386 | Derived technical indicator is published publicly from restricted raw data | Require permission for derived/public use; do not assume transformation removes source restrictions |
+| AT-387 | Strategy backtest result embeds reconstructible raw ticks/candles in a downloadable report | Treat as potential data redistribution; block until source rights permit the disclosure |
+| AT-388 | Data vendor agreement expires while old raw cache remains | Stop ingestion and evaluate deletion/retention; do not continue replay by default |
+| AT-389 | User account closes but compliance logs have a separate retention obligation | Retain only the logs required/permitted; apply distinct raw-data deletion policy |
+| AT-390 | Backup/DR copy exists outside the primary data store | Apply the same agreement, geography, access and deletion constraints to backup copies |
+| AT-391 | Raw market data is stored in a public GitHub repository | Block; preserve only permitted metadata, source URLs and hashes in research repository |
+| AT-392 | One tenant requests another tenant's provider feed cache | Deny cross-tenant access unless the agreement explicitly supports the sharing model |
+| AT-393 | Data is displayed to an end user under an agreement with explicit user limits/attribution | Permit only within those exact recorded limits; audit user and source agreement |
+| AT-394 | Market-data rights are permitted but SEBI/exchange retail-algo registration is not complete | Data use may be evaluated independently; block live retail-algo deployment on the separate regulatory gate |
+| AT-395 | Agreement version changes and narrows permitted display/retention | Invalidate affected rights decisions, stop prohibited operations and re-evaluate stored datasets/exports |
+
+PX-025 now contains **205 normative requirements (R-001–R-205) and 395 proposed acceptance scenarios (AT-001–AT-395)**. These are proposed deterministic tests only; no agreement, account, API feed or data payload was accessed.
+
+### Source and contract limitations
+
+- Kite public API terms and support FAQ explicitly restrict live public display, redistribution and some permanent/cached copies, but the accepted account-specific agreement was not retrieved.
+- NSE's Relevant Agreement is subscriber-specific; the generic policy does not replace the signed agreement governing a particular feed.
+- Upstox's website/app terms are not treated as a complete API data licence; current API/account terms remain unverified.
+- Dhan public support confirms the separate Data API subscription and fee, but not downstream rights; account API terms remain unverified.
+- Kite's five-year clause is audit-log retention, not raw-market-data retention permission.
