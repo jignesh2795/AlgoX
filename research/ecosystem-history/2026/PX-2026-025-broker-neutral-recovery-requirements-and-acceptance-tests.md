@@ -525,4 +525,36 @@ PX-2026-026 found that the 30 requirements and 35 initial acceptance scenarios n
 | AT-042 | Dhan Super Order has entry, target and stop-loss legs | Preserve parent and leg identity/state; do not flatten into one ordinary order |
 | AT-043 | Dhan correlation lookup returns one order after ambiguous sliced request | Treat it as one discovered order only; do not infer every child was found |
 
-The original AT-001 through AT-035 remain unchanged. PX-025 now contains **33 normative requirements and 43 proposed acceptance scenarios**. These tests remain unexecuted; this amendment is documentation only.
+The original AT-001 through AT-035 remain unchanged. PX-025 now contains **36 normative requirements and 49 proposed acceptance scenarios**. These tests remain unexecuted; this amendment is documentation only.
+
+
+## 13. Provider stream continuity, REST consistency and trade-revision amendment (2026-11-08)
+
+PX-2026-027 reviewed current official provider documentation for WebSocket order updates, reconnect behavior, order/trade REST reads, message identifiers and trade corrections. See [PX-2026-027 — Broker observation consistency, stream gaps and trade-revision semantics](PX-2026-027-broker-observation-consistency-stream-recovery-and-trade-revisions.md).
+
+### Additional normative requirements
+
+**R-034 — Stream-gap completeness requires a documented continuity contract.** Reconnecting a stream MUST NOT be treated as proof that missed messages were replayed. Without documented sequence/cursor and replay/resume semantics, event-history completeness for the gap remains UNKNOWN even if current state can later be reconciled.
+
+**R-035 — Separate REST reads are not an atomic snapshot by default.** Unless a provider documents a shared atomic snapshot/watermark or read-after-write guarantee, order and trade responses fetched separately MUST be treated as independently timed observations. Do not force quantity/status agreement by overwriting evidence.
+
+**R-036 — Trade corrections are append-only and provider-defined.** Preserve original trade observations and later correction/bust/reversal records as separate linked evidence. Apply economic reversal/replacement only when authoritative provider/exchange semantics define it. Missing documentation remains UNKNOWN.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-044 | WebSocket disconnects/reconnects without documented replay cursor | Record gap; reconcile current orders/trades; event-history completeness remains UNKNOWN |
+| AT-045 | Orderbook and tradebook reads at different cutoffs temporarily disagree | Preserve both observations/times; do not invent atomicity or force balance |
+| AT-046 | Upstox `order_request_id` and `order_ref_id` appear in an update | Preserve as request/order metadata; do not treat as event sequence or replay offset |
+| AT-047 | Duplicate/out-of-order updates arrive with equal/coarse timestamps | Retain raw observations; do not infer uniqueness or causal order from timestamps |
+| AT-048 | Synthetic trade correction/bust carries an explicit authoritative link | Preserve original and correction; derive net execution only under documented correction rule |
+| AT-049 | Trade endpoints expose executions but no correction/bust contract is documented | Correction capability remains UNKNOWN; do not delete/rewrite original trade or claim finality |
+
+The original AT-001 through AT-043 remain in force. The requirements baseline now contains **36 requirements and 49 proposed acceptance scenarios**. The scenarios are not executed tests.
+
+### Scope clarification
+
+Kite checksums can authenticate a received HTTP postback but do not establish message completeness. Upstox `order_request_id` and `order_ref_id` are described as request-count/order metadata, not stream cursors. Dhan order IDs and last-updated timestamps identify an order/update but are not documented as a sequence or replay cursor. See PX-027 for source details and limits.
+
+No provider stream was connected and no broker endpoint was called. This amendment is requirements documentation only.
