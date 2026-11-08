@@ -698,3 +698,30 @@ PX-025 now contains **255 normative requirements and 460 proposed acceptance sce
 All are proposed acceptance cases; no strategy performance or statistical test was run.
 
 No PaRRVA submission, performance claim, broker connection, code implementation, paid service, PR or merge to main was made.
+
+
+## 32. Simulation semantics, paper/live parity and deterministic replay (2026-11-08)
+
+PX-2026-042 defines how AlgoX should share strategy/risk/order/portfolio semantics across BACKTEST, PAPER, SHADOW and LIVE while preserving distinct execution evidence.
+
+### Findings
+
+- **Freqtrade:** documents backtesting on historical data and dry-run on real-time data without opening trades on the exchange. It warns backtests assume orders fill, while dry-run limits can remain unfilled and execution is delayed after a candle signal. It recommends comparing the two modes and expects differences.
+- **QuantConnect LEAN:** documents historical-model-driven fills in backtests versus asynchronous brokerage fills in live; live order timing is not constrained by subscription resolution. Brokerages report accepted, partial/full fill, cancellation and rejection states. Its fill documentation notes built-in backtest models can assume complete fills unless custom partial-fill models are used.
+- **AlgoX decision:** target semantic parity, not identical fills. Share canonical strategy intent, instrument identity, risk gates, order lifecycle, portfolio accounting and event provenance. Provide mode-specific clocks, fill models, accounts and adapters.
+- **BACKTEST:** historical input, virtual clock, simulated fills/account/fees.
+- **PAPER:** current feed, virtual account and paper fills; never calls the live order adapter.
+- **SHADOW:** records signal/admission/hypothetical outcome with no order capability.
+- **LIVE:** broker commands and asynchronous broker/exchange/ledger evidence.
+- Mode isolation is enforced at backend capability boundaries. Paper balances/orders cannot be promoted into live; live open orders cannot be cloned into virtual accounts.
+- Parity reports compare signals, canonical instruments, gate outcomes, requests, state transitions, positions/ledger and cost components, while explaining unavoidable fill/timing differences.
+
+### Requirements and tests
+
+PX-025 now contains **275 normative requirements and 490 proposed acceptance scenarios**:
+- R-256–R-275 cover explicit mode identity, shared domain semantics, origin-typed fills, pinned backtest fill assumptions, paper/shadow live-route isolation, hypothetical shadow fills, asynchronous live lifecycle, shared economic event types with provenance, virtual deterministic clock, recorded-order replay, isolated mode transitions, credential/capability boundaries, virtual paper account, latency domains, risk gates across all modes, drift attribution, mode-specific models, partial-fill invariants, event/callback scheduling and immutable comparative manifests.
+- AT-461–AT-490 cover parity of intent, simulated origin, virtual fills, shadow no-submit, paper adapter failure, missing mode, pending-order mode switch, account isolation, deterministic replay, bar-fill timing, async paper/live events, delayed acknowledgement, fill-vs-modify race, partial fills, unknown risk gate, live-only evidence in backtest, parity drift, captured event ordering, gap replay, seeded stochastic fill, startup reconciliation and parity manifest.
+
+All acceptance cases are proposed only; no engine, broker, paper account, live account or strategy was run.
+
+No broker connection, market-feed subscription, paper/live order, code change, paid service, PR or merge to main was performed.
