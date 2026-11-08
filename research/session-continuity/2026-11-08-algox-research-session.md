@@ -1,7 +1,7 @@
 # AlgoX research session continuity — 2026-11-08
 
 **Record type:** session continuity / research-state consolidation  
-**Research branch:** `research/px-2026-022-indian-fill-realism-2026-11-08`  
+**Research branch:** `research/px-2026-023-nse-replay-data-audit-2026-11-08` (branched from the PX-2026-022 research branch)  
 **Base:** `main` (research-only branch; no merge performed)  
 **Status:** consolidated from the available conversation transcript, repository records and prior project context; source closure remains incomplete  
 **Scope:** preserve the research work and decisions from this conversation so the next session can resume without relying on chat history alone.
@@ -20,8 +20,9 @@ The broader intended lifecycle is **Research → Validate → Simulate → Execu
 - Default branch: `main`.
 - Historical research/prototype branch previously identified: `research/algo-trading-github`, at `4dbc9f4c5f7052a1a25e398cc0ba64178019547f`; draft PR #1 remains unmerged.
 - The 2026 ecosystem archive on `main` contains records PX-2026-001 through PX-2026-021.
-- The present continuation branch is `research/px-2026-022-indian-fill-realism-2026-11-08`.
-- This branch contains PX-2026-022 and this continuity record. It is intentionally not merged.
+- The prior continuation branch is `research/px-2026-022-indian-fill-realism-2026-11-08`.
+- The current continuation branch is `research/px-2026-023-nse-replay-data-audit-2026-11-08`, branched from the PX-022 branch.
+- The current branch contains PX-2026-022, PX-2026-023 and this updated continuity record. It is intentionally not merged.
 - During this session, GitHub issue search returned no open issues; PR #1 was found as a draft research PR. This is a point-in-time connector result, not a permanent repository guarantee.
 
 ## 3. Research completed or substantially advanced in this conversation
@@ -153,3 +154,33 @@ Measure fill ratio, time-to-fill, adverse selection, implementation shortfall, p
 This record consolidates information available in the conversation transcript, current repository records and prior AlgoX project context as of 2026-11-08. The original chat contained many web searches and summaries, but the transcript does not preserve every source URL, exact circular number, version pin or complete bibliography. This record therefore preserves conclusions and uncertainty; it does not falsely claim that every underlying source has been independently re-audited here.
 
 No application code, broker integration or execution behavior was changed. The continuity record and PX-2026-022 are research documentation only.
+
+
+## 9. Follow-up research update — NSE feed protocol and deterministic replay (2026-11-08)
+
+A follow-up primary-source audit was completed and saved as [PX-2026-023 — NSE feed protocol, historical order data and deterministic replay feasibility](../ecosystem-history/2026/PX-2026-023-nse-feed-protocol-and-deterministic-replay.md).
+
+### New verified findings
+
+- NSE Circular 03/2023, dated 23 January 2023, explicitly lists MTBT order/trade multicast infrastructure for both CM and FO, with segment-specific stream masters.
+- The same circular documents missed-tick TCP recovery and a 30-second order-book snapshot-recovery service. Recovered ticks can lag the direct multicast feed. The circular alone does not pin the exact 2023 FO schema or snapshot watermark contract.
+- Historical protocol documents are segment/version-specific. An archived FO v6.1 document and a CM/CD v6.2 document are not sufficient to infer the exact FO version in force on every 2023 date. The current member protocol catalogue is separate from the ordinary subscriber product catalogue.
+- NSE Historical Order & Trade specification v1.18 (18 May 2026) describes full order-book-event and trade datasets for CM/F&O. Full orders are available after 90 calendar days; full trades after 30 days. The dataset is a subscription product, not assumed free.
+- SEBI Circular 2024/178 sets a first-basket voluminous-data free allowance of up to 2 GB per researcher per year where no extra computation is required, while NSE's research list classifies historical TBT order/trade data without client and broker information as voluminous and includes a six-month-window footnote. Eligibility, exact lookback and whether a sample qualifies under the free allowance remain unresolved.
+- NSE's Data Room is a time-bound, approval-based research route with no monetary consideration; it is cloud-hosted and eligibility/export conditions remain unverified for AlgoX.
+
+### Replay research boundary
+
+The candidate replay approach is stream-aware and fail-closed: preserve immutable source records, use historical contract masters, detect duplicates and gaps, keep recovery provenance, and mark books uncertain where continuity cannot be proven. A snapshot may only be used as a replay rebase when its as-of boundary is verified for the applicable historical schema. These are research requirements, not an approved architecture or implementation.
+
+### Next task
+
+Audit public sample files and the non-confidential historical Order & Trade specification for CM and FO. Determine whether the sample files are freely downloadable and usable for local research fixtures. Then compare a small file-based replay feasibility study with the 2023 MTBT semantics. Do not purchase data, submit an NSE application, connect to a broker, implement a parser or change execution behavior without a separate authorization.
+
+### Source register additions
+
+- NSE Circular 03/2023: https://archives.nseindia.com/content/circulars/MSD55333.pdf
+- NSE Historical Order & Trade Specification v1.18: https://nsearchives.nseindia.com/web/mediaattachment/2026-05/NSE_Hist_Order_Trade_Data_1.18_20260518122214.pdf
+- SEBI Circular 2024/178: https://www.sebi.gov.in/sebi_data/attachdocs/dec-2024/1734693561713.pdf
+- NSE research-data list: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Data%20list%20under%20NSE%20Data%20Sharing%20Policy%20for%20Research%20and%20Analysis_20250728.pdf
+- NSE Data Room / Data for Analytics: https://www.nse.in/static/research/initiatives-data-for-analytics
