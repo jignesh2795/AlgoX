@@ -48,6 +48,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-040](PX-2026-040-backtest-execution-realism-liquidity-and-transaction-costs.md) | Backtest execution realism, liquidity and transaction-cost controls |
 | [PX-2026-041](PX-2026-041-backtest-validity-leakage-and-statistical-robustness.md) | Backtest validity, leakage prevention and statistical robustness |
 | [PX-2026-042](PX-2026-042-simulation-semantics-paper-live-parity-and-deterministic-replay.md) | Simulation semantics, paper/live parity and deterministic replay |
+| [PX-2026-043](PX-2026-043-cross-mode-conformance-and-replay-verification.md) | Cross-mode conformance testing and replay verification |
 
 ## Scope and evidence policy
 
