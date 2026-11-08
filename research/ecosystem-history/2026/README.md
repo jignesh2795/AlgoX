@@ -45,6 +45,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-037](PX-2026-037-market-data-identity-timestamps-freshness-and-continuity.md) | Market-data identity, timestamp semantics, freshness and historical continuity |
 | [PX-2026-038](PX-2026-038-historical-data-coverage-expired-contracts-and-backtest-provenance.md) | Historical data coverage, expired contracts and backtest provenance |
 | [PX-2026-039](PX-2026-039-market-data-rights-retention-and-distribution-controls.md) | Market-data rights, retention and distribution controls |
+| [PX-2026-040](PX-2026-040-broker-api-authentication-token-lifecycle-and-static-ip-controls.md) | Broker API authentication, token lifecycle and static-IP controls |
 
 ## Scope and evidence policy
 
