@@ -36,6 +36,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-028](PX-2026-028-portfolio-cash-ledger-charge-and-contract-note-reconciliation.md) | Portfolio, cash-ledger, charge and contract-note reconciliation |
 | [PX-2026-029](PX-2026-029-indian-derivatives-expiry-exercise-physical-settlement-and-corporate-actions.md) | Indian derivatives expiry, exercise, physical settlement and corporate actions |
 | [PX-2026-030](PX-2026-030-equity-derivatives-margin-calculation-collection-and-risk-controls.md) | Equity-derivatives margin calculation, collection and risk controls |
+| [PX-2026-031](PX-2026-031-clearing-margin-reports-short-allocation-and-risk-enforcement.md) | Clearing margin reports, short allocation and risk enforcement |
 
 ## Scope and evidence policy
 
