@@ -184,3 +184,39 @@ Audit public sample files and the non-confidential historical Order & Trade spec
 - SEBI Circular 2024/178: https://www.sebi.gov.in/sebi_data/attachdocs/dec-2024/1734693561713.pdf
 - NSE research-data list: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Data%20list%20under%20NSE%20Data%20Sharing%20Policy%20for%20Research%20and%20Analysis_20250728.pdf
 - NSE Data Room / Data for Analytics: https://www.nse.in/static/research/initiatives-data-for-analytics
+
+
+## 10. Historical research-file schema and replay-integrity follow-up (2026-11-08)
+
+The PX-2026-023 research record has been expanded with the exact archived 2023 NSE Research Data layout and two important limitations.
+
+### Exact format lineage
+
+- NSE Historical Research Data Layout v1.10 is dated 27 July 2022.
+- NSE Historical Research Data Layout v1.11 is dated 15 December 2023; its revision history identifies the v1.10 to v1.11 boundary.
+- This makes v1.10 the documented layout before 15 December 2023 and v1.11 the documented layout from that date. Pin the full file URL and date, not just the label: an older separate document also carries a v1.11 label with a different date and content.
+- The 2023 v1.11 Research Data format includes all order/trade ticks, order identifiers, jiffy timestamps, entry/cancel/modify activity, and buy/sell order references in trade records.
+
+### Replay limits now evidenced
+
+- The reviewed v1.11 and v1.18 file layouts have no documented per-event sequence-number field or explicit equal-timestamp tie-order guarantee.
+- The v1.11 trigger files provide MD5 and byte size per file. This validates file delivery integrity, not exchange-event completeness or ordering.
+- FAO files are split across stream files with non-overlapping contracts; preserve each file identity and do not create a global event sequence.
+- In 2023 v1.11, FAO quantities are described as underlying shares. v1.12 (2024), v1.14 and v1.15 (2025) repeat this; v1.18 (2026) instead says derivative volumes are in contract units and need lot-size conversion. The exact point/meaning of this discrepancy is unresolved and needs sample/official confirmation.
+
+### Public sample status
+
+NSE links CM and FO sample ZIPs from its current historical-data product page. The current research environment could not fetch ZIP contents, so the samples have not been inspected. They must not be treated as a validated 2023 research-data fixture or as proof of data entitlement.
+
+### Updated next action
+
+Continue with the no-purchase route: establish whether a limited NSE Research Data TBT sample is eligible under the SEBI 2 GB/year allowance or the NSE Data Room research grant, and determine the exact historical row-order/tie semantics. Do not submit an application or contact NSE without explicit authorization. If data access is unavailable, the replay study must remain a specification-feasibility study with its uncertainty clearly recorded.
+
+Source references added to PX-2026-023:
+- v1.10: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_data_layout_1.10_0.pdf
+- v1.11: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_data_layout_1.11_0.pdf
+- v1.12: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_data_layout_1.12.pdf
+- v1.14: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_Trade_Data_1.14.pdf
+- v1.15: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/NSE_Hist_Order_Trade_Data_1.15.pdf
+- CM sample: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Sample_CMsegment.zip
+- FO sample: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Sample_FOsegment.zip
