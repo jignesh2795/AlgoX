@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **235 normative requirements (R-001–R-235) and 430 proposed acceptance scenarios (AT-001–AT-430)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **255 normative requirements (R-001–R-255) and 460 proposed acceptance scenarios (AT-001–AT-460)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1571,3 +1571,133 @@ PX-025 now contains **235 normative requirements (R-001–R-235) and 430 propose
 - Broker brokerage/DP/funding tariffs must be pinned by provider/account/effective date.
 - STT, stamp duty, SEBI fee and GST require date-effective tax rules and exact taxable bases.
 - T+0 eligibility is security/date-specific and must come from current effective notices.
+
+
+## 27. Backtest validity, leakage prevention and statistical robustness (2026-11-08)
+
+PX-2026-041 defines chronological validation, overlap-aware purging/embargo, trial accounting, selection-bias diagnostics and the separation between internal research and PaRRVA-verified performance claims.
+
+### Additional normative requirements
+
+### R-236 — Research hypothesis and selection criterion are predeclared
+
+Each strategy experiment MUST record its hypothesis, expected mechanism, target, benchmark, selection metric, permitted parameter/search space and evaluation dates before examining validation/final OOS results. Post-hoc changes MUST create a new linked experiment version.
+
+### R-237 — Chronological train/validation/test boundaries are immutable
+
+Every experiment MUST preserve the ordered train, validation and final OOS date intervals. Random shuffling MUST NOT be used for time-dependent financial observations unless a separate statistical justification demonstrates that it is appropriate for the specific target and does not leak future information.
+
+### R-238 — Final OOS is locked and consumed once
+
+The final holdout MUST remain inaccessible to iterative model/strategy selection. Once results are inspected and influence any subsequent change, the interval MUST be marked consumed and cannot be described as untouched OOS for the revised strategy.
+
+### R-239 — All fitted transformations are fold-local
+
+Scaling, imputation, feature selection, dimensionality reduction, calibration, threshold fitting and model parameters MUST be fitted using only the training portion of each fold. A transform fitted on the full history MUST NOT be reused in a test fold.
+
+### R-240 — Walk-forward model selection is nested and chronological
+
+Where model/parameter selection is performed, it MUST occur inside the permitted training/validation window. The outer walk-forward OOS interval MUST remain excluded from fitting, feature selection and candidate ranking until the evaluation step.
+
+### R-241 — Financial labels carry explicit information intervals
+
+Each supervised label MUST retain its feature/decision time, label start and end/resolution time, horizon and information interval. A timestamp on the feature row alone MUST NOT be treated as the complete label interval.
+
+### R-242 — Overlapping train/test labels are purged
+
+Where training and test labels depend on overlapping future return/event intervals, the overlapping training observations MUST be removed from that fold. The purged sample IDs and overlap rule MUST be recorded.
+
+### R-243 — Embargo is explicit and justified
+
+Where residual serial dependence or feature/label construction creates post-test information leakage risk, the validation protocol MUST apply a declared embargo. Its length and justification MUST be based on label horizon, holding period and data-dependence assumptions, not an undocumented fixed default.
+
+### R-244 — Trial registry includes every attempted variant
+
+The experiment registry MUST preserve all tested strategies, parameter combinations, model classes, feature sets, manual changes, prompts and failed/discarded trials that influenced selection. Results MUST NOT report only the winning trial while omitting the search universe.
+
+### R-245 — PBO/CSCV is computed from the full candidate family
+
+Where PBO is reported, the experiment MUST preserve the complete candidate return matrix, common observation dates, CSCV partition design, in-sample selection metric, OOS ranking and calculation version. PBO MUST NOT be estimated from the final winner alone.
+
+### R-246 — DSR records trial count and non-normality inputs
+
+Where DSR is reported, the result MUST preserve observed Sharpe, return frequency/annualization, sample length, skewness, kurtosis, raw trial count, any effective-trial adjustment, dependence assumptions and calculation implementation. A raw Sharpe MUST NOT be presented as deflated or selection-adjusted.
+
+### R-247 — Data-snooping tests preserve the hypothesis family
+
+Where White's Reality Check or another family-wide multiple-testing procedure is used, the experiment MUST pin the full hypothesis family, benchmark/null, bootstrap design, resampling blocks, seed, replications, test statistic and adjusted result. The family MUST NOT be selected after seeing the winner.
+
+### R-248 — Statistical inference accounts for return dependence
+
+Sharpe inference, confidence intervals and bootstrap uncertainty MUST address serial correlation, overlapping holdings/labels, non-normality and cross-instrument dependence as appropriate. Annualization and effective sample assumptions MUST be explicit.
+
+### R-249 — A standard performance panel is reported
+
+A backtest report MUST include gross/net returns, volatility, Sharpe/Sortino assumptions, drawdown depth/duration, tail losses, turnover, trade count, holding period, exposure/leverage, margin use, capacity/participation, cost breakdown and benchmark comparison where relevant. A single headline return or Sharpe MUST NOT stand alone.
+
+### R-250 — Sample adequacy is justified, not hard-coded
+
+A result MUST report sample length, effective observation assumptions, number of independent/overlapping trades and statistical power/uncertainty where estimable. It MUST NOT claim validity from a universal fixed minimum trade count or date span.
+
+### R-251 — Robustness checks are planned and fully reported
+
+The experiment MUST preserve fold/subperiod performance, parameter perturbation, regime and cost-stress tests specified by the protocol. Negative or unstable results MUST remain in the report; they MUST NOT be suppressed in favour of the best interval.
+
+### R-252 — Benchmark and null are appropriate and pinned
+
+Each strategy MUST identify a relevant benchmark and null/baseline consistent with its market, asset, exposure and return convention. Price-return versus total-return benchmarks MUST be distinguished, and benchmark data vintages MUST be pinned.
+
+### R-253 — Adaptive search history is treated as selection
+
+If a researcher changes later experiments after observing prior results, the trial registry MUST retain that adaptive dependency. The subsequent validation/OOS protocol MUST account for the full research path; renaming or branching a strategy MUST NOT reset its trial count.
+
+### R-254 — PaRRVA and public performance status are not self-assigned
+
+Internal backtest metrics MUST be labelled research/simulated unless independently verified under the applicable PaRRVA process. The system MUST retain verification status, scope, entity/algorithm identity, source and effective date if a verified claim is ever imported. A local statistical test MUST NOT be represented as PaRRVA verification.
+
+### R-255 — Performance claims preserve complete selection and disclosure context
+
+Any external risk/return presentation in a regulated broker/IA/RA/algo-provider context MUST be separately checked against the applicable current SEBI/PaRRVA/exchange requirements. The internal experiment record MUST retain all submitted algos/trials, periods, positive/negative result ranges, full risk metrics and required disclaimers so selective winner-only presentation can be detected. Internal research and PaRRVA verification MUST remain distinct statuses.
+
+### Additional deterministic acceptance scenarios
+
+These extend AT-001 through AT-430. Use synthetic return series, label intervals, trial registries, fake models and deterministic split manifests only.
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-431 | Random shuffle is applied to a chronological price-prediction dataset | Reject split for the time-dependent task unless a justified non-temporal design is explicitly approved |
+| AT-432 | Scaler is fitted on the full dataset before train/test split | Detect future-data leakage; require scaler fit independently inside each training fold |
+| AT-433 | Feature selection uses OOS performance or future labels | Reject fold; preserve the leakage path and affected sample IDs |
+| AT-434 | A rolling label horizon overlaps the test interval | Purge the overlapping training labels and record the overlap decision |
+| AT-435 | A label resolves after the test interval starts even though its feature timestamp is earlier | Treat it as overlapping information and purge it from training |
+| AT-436 | Embargo is required after a test block due to label horizon/autocorrelation | Apply the configured embargo and preserve its length/rationale |
+| AT-437 | Two strategies have the same final OOS but one was changed repeatedly after observing that OOS | Mark the interval consumed for the revised strategy; it is no longer untouched OOS |
+| AT-438 | Walk-forward fold trains on a date later than its OOS evaluation date | Reject fold ordering and report temporal leakage |
+| AT-439 | Hyperparameters are tuned using outer OOS results | Detect nested-validation breach; invalidate the claimed OOS result |
+| AT-440 | Model is retrained on a rolling schedule using only past data | Preserve each fit window, model version and subsequent OOS window |
+| AT-441 | Researcher runs 1000 parameter variants but registers only the winning 10 | Fail trial completeness; require all attempted variants and selection dependencies |
+| AT-442 | A manual/LLM-prompt change creates a new strategy variant after reviewing prior performance | Record the variant and its parent trial; do not reset trial count |
+| AT-443 | PBO is computed from only the winning strategy's return series | Reject PBO result; require the complete candidate strategy matrix |
+| AT-444 | CSCV partitions are formed but date gaps/missing rows differ by candidate strategy | Normalize common observation dates under a declared policy or return UNKNOWN; do not compare mismatched trial samples silently |
+| AT-445 | DSR is reported without trial count, skewness or kurtosis inputs | Reject as incomplete DSR; preserve only the raw Sharpe with clear label |
+| AT-446 | Multiple strategies are strongly correlated | Record raw trial count and effective-count method; do not claim raw count equals independent trial count |
+| AT-447 | White Reality Check is applied after the tested rule family was narrowed to winners | Mark family selection as biased; require the original complete hypothesis family |
+| AT-448 | Bootstrap resamples individual returns despite strong serial dependence | Require a dependence-appropriate resampling policy or classify inferential result as unsupported |
+| AT-449 | Sharpe annualization ignores return frequency and serial correlation | Flag metric as non-comparable; require declared frequency/annualization and dependence treatment |
+| AT-450 | Strategy has high CAGR but deep/long drawdown and negative skew | Report the complete risk panel; do not rank on CAGR alone |
+| AT-451 | Strategy performs strongly in one selected subperiod and fails other walk-forward folds | Preserve all fold results and report instability; no best-period-only summary |
+| AT-452 | Sample contains many overlapping intraday trades with shared return intervals | Report effective observation/overlap treatment; do not count all trades as independent evidence |
+| AT-453 | Sample length or trade count is low for the requested inference | Mark evidence inconclusive/low power; do not apply a universal PASS threshold |
+| AT-454 | Strategy uses TRI as benchmark but raw price-only portfolio cashflows | Flag return-convention mismatch and require consistent dividend treatment |
+| AT-455 | Final OOS results are examined and then parameters are tuned to improve them | Mark OOS consumed and require a new untouched forward evaluation period |
+| AT-456 | Current index constituents are used in a historical walk-forward model | Fail point-in-time universe gate and flag survivorship bias |
+| AT-457 | Backtest uses corrected historical data unavailable at simulated decision time | Mark data-vintage/lookahead mismatch; require declared latest-corrected versus as-published policy |
+| AT-458 | Strategy passes before transaction costs but fails after PX-040 costs | Report net-of-cost failure; do not present gross success as deployable evidence |
+| AT-459 | PaRRVA status is set to VERIFIED because internal DSR/PBO tests pass | Reject status; only the applicable external PaRRVA process can establish verification |
+| AT-460 | Public claim selects one winning algo from many submitted algos and omits negative-result ranges/date context | Flag selective-presentation risk; require applicable PaRRVA/SEBI review and complete disclosure context |
+
+PX-025 now contains **255 normative requirements (R-001–R-255) and 460 proposed acceptance scenarios (AT-001–AT-460)**. These scenarios are proposed; no backtest, model validation, statistical calculation or PaRRVA submission was executed.
+
+### PaRRVA scope note
+
+SEBI's PaRRVA framework and its 2026 operationalisation are a separate external verification/disclosure process. Public/regulated performance claims must be checked against the exact applicable entity category, broker/Algo-provider arrangement and current circulars. Internal research performance, simulated backtest metrics, broker-recorded actual returns and PaRRVA-verified outputs MUST remain distinctly labelled.
