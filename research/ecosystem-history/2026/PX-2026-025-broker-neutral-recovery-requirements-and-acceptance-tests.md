@@ -625,3 +625,73 @@ PX-025 now contains **48 normative requirements and 75 proposed acceptance scena
 - NSE's investor advisory asks investors to receive contract notes within 24 hours and account statements at least quarterly, and to verify demat/exchange balance evidence.
 
 No account, broker endpoint, sandbox, real order, code implementation or paid service was used. This amendment is requirements documentation only.
+
+
+## 15. Derivatives expiry, exercise, delivery and net-settlement requirements amendment
+
+PX-2026-029 identified that order/trade reconciliation must continue through derivatives expiry, exercise/assignment and cash or securities settlement. The provider/clearing rule must be effective-date and product-family scoped.
+
+**R-049 — Contract identity and expiry calendar are effective-dated.** Every derivative contract and expiry event MUST retain the exchange/segment, product family, underlying/security identity, expiry date, holiday calendar, contract-master version, lot/multiplier, tick size, exercise style and settlement-mode source/version. A generic weekday rule MUST NOT override the published contract-specific expiry and holiday schedule.
+
+**R-050 — Settlement mode is explicit per product and date.** The domain MUST distinguish index futures/options from individual-security futures/options and preserve the effective cash/physical settlement mode for the contract date. An unresolved or conflicting mode MUST remain UNKNOWN and block automatic settlement classification.
+
+**R-051 — Automatic exercise and assignment are evidence-backed.** For contracts whose applicable rule specifies automatic exercise, the system MUST retain the expiry reference, ITM decision, series, eligible long quantity, assignment result and clearing/client allocation evidence. Random allocation of long ITM positions to shorts MUST NOT be fabricated or deterministically assigned by AlgoX.
+
+**R-052 — Physical delivery direction is modelled by position and option side.** Stock futures and physically settled stock options MUST produce explicit securities-give/receive and funds-pay/receive obligations with the originating contract, position and trade references. Long/short stock futures and call/put positions MUST NOT be collapsed into one signed cash P&L.
+
+**R-053 — Expiry and settlement are separate lifecycle stages.** The implementation MUST distinguish last-trading/expiry observation, daily MTM/premium settlement, exercise/assignment, obligation generation, delivery/funds pay-in, early pay-in, payout, shortage/auction and final settlement confirmation. An expired order/contract MUST NOT be assumed to mean all resulting obligations are settled.
+
+**R-054 — Delivery and assignment margins are time-bounded obligations.** Delivery/assignment margin MUST retain amount, rule/parameter version, valuation input, assessed time, expiry-to-settlement window and release evidence. Early-pay-in initiation MUST NOT be treated as confirmed delivery or automatic margin release.
+
+**R-055 — Cash/F&O net-settlement eligibility is explicit.** Cross-segment netting MUST be applied only where the applicable SEBI/exchange rules establish eligibility, including the same TM-CM combination and participant-class restrictions. Different clearing-member/corporation routes and excluded institutional categories MUST NOT receive inferred netting benefits.
+
+**R-056 — Client and clearing-member aggregation remain distinct.** Preserve client-level originating obligations, TM/CM mapping, custodial participant category, eligibility decision and clearing-member net settlement output separately. Clearing-member netting MUST NOT overwrite client-level source obligations or imply arbitrary cross-client margin set-off.
+
+**R-057 — Settlement obligations are append-only and linked to source trades.** Exercise, assignment, physical delivery, funds settlement, early pay-in, margin, netting, closeout and payout MUST be recorded as linked settlement events. They MUST NOT mutate/delete the original order or trade evidence. Reconciliation MUST connect those events to PX-028 holdings, ledger, charges and contract-note evidence.
+
+**R-058 — Corporate-action adjustments are versioned and effective-dated.** Bonus, split, consolidation, rights, dividend and other contract adjustments MUST retain the source circular/rule, ex-date/last cum-date, adjustment factor, rounding/tick/lot methodology and old/new contract/position values. No approximate adjustment factor may be inferred from the corporate-action label alone.
+
+**R-059 — Merger closeout is a distinct exchange-originated event.** Where the applicable NSE rule requires forced settlement on a last cum-date, the system MUST preserve the last-cum-date, closing-price reference, affected outstanding contracts, forced settlement obligation and GTC/GTD cancellation event separately from client-initiated orders.
+
+**R-060 — Taxes and charges retain segment-specific settlement provenance.** STT, stamp duty, brokerage and other applicable charges MUST retain the relevant transaction/settlement segment, event type, tariff/rule version and original trade/settlement reference. Cross-segment delivery netting MUST NOT collapse or erase segment-wise STT/stamp-duty computation.
+
+**R-061 — Delivery shortage and default are explicit settlement exceptions.** Missing securities/funds, failed early pay-in, auction, auction failure, closeout, penalty and default handling MUST be explicit evidence-backed states. A generated delivery obligation MUST NOT be marked settled until authoritative pay-in/payout/closeout evidence is captured.
+
+
+
+### Acceptance matrix — derivatives expiry, exercise and settlement
+
+The following deterministic tests extend AT-001 through AT-075. Use synthetic contract masters, exchange files and fake clearing results only.
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-076 | Current listed Tuesday expiry falls on a trading holiday | Resolve the previous trading day from the effective holiday calendar and preserve the calendar/version reference |
+| AT-077 | Historical contract has a different expiry rule or the applicable master/circular is missing | Do not apply the current Tuesday rule; return UNKNOWN and block automatic expiry classification |
+| AT-078 | An index option reaches expiry and is ITM | Create the appropriate cash-exercise settlement event; do not create underlying-share delivery |
+| AT-079 | A stock future is open at expiry after daily MTM settlements | Preserve daily MTM history and create separate physical share/funds delivery obligations for the long/short positions |
+| AT-080 | An ITM physically settled stock call is long | Create share-receipt and strike-funds-pay obligation linked to the option series and source trades |
+| AT-081 | An ITM physically settled stock call is short and assigned | Create share-delivery and strike-funds-receivable obligation only for the assigned quantity |
+| AT-082 | An ITM physically settled stock put is long | Create share-delivery and strike-funds-receivable obligation linked to the option position |
+| AT-083 | An ITM physically settled stock put is short and assigned | Create share-receipt and strike-funds-pay obligation only for the assigned quantity |
+| AT-084 | Short option position is not assigned in the exchange's random allocation | Preserve the exchange assignment result; do not assume every short ITM position is assigned |
+| AT-085 | Long ITM option is automatically exercised under the effective rule | Create an exercise result even without a client-initiated close order; preserve the expiry reference and clearing allocation |
+| AT-086 | Clearing member allocates exercised positions to clients | Preserve client-level allocation evidence and link each result to the original option position |
+| AT-087 | Delivery margin is assessed from expiry until settlement | Retain margin amount/parameter version and due window; do not treat margin as a trade expense |
+| AT-088 | Early pay-in is initiated but not confirmed | Keep delivery obligation open and margin unreleased until authoritative confirmation |
+| AT-089 | Expiry+1 settlement date crosses a clearing/bank holiday | Resolve the actual date from the published settlement schedule; do not use a fixed 24-hour offset |
+| AT-090 | Cash and physical F&O expiry obligations use the same eligible TM-CM combination | Apply only the documented eligible net-settlement process and preserve pre-net cash/F&O obligations |
+| AT-091 | Cash and F&O trades clear through different clearing members/corporations | Do not net the obligations; keep both settlement routes separate |
+| AT-092 | Institutional/FPI account is presented for cross-segment netting | Reject the netting eligibility under the SEBI 2022 exclusion; preserve original gross obligations |
+| AT-093 | Eligible physical F&O delivery is netted with cash-market delivery | Keep STT and stamp duty computed/reported segment-wise; do not collapse tax provenance |
+| AT-094 | Clearing-member net obligations differ from one client's gross obligations | Retain client, TM, CM and clearing output layers; never substitute the CM net figure for the client obligation |
+| AT-095 | Bonus or split adjustment affects open contracts | Apply the date-effective official adjustment factor, tick/lot rounding and revised position; retain original and adjusted contract identities |
+| AT-096 | Rights issue adjusts strike, futures base price, lot and position | Use the official event-specific factor and preserve old/new values and formula version |
+| AT-097 | Extraordinary dividend meets the effective adjustment threshold | Apply the correct dated NSE method; an ordinary dividend below the threshold must not receive the extraordinary adjustment |
+| AT-098 | Merger imposes compulsory settlement on last cum-date | Create a forced-closeout event at the official reference price and preserve the affected contracts |
+| AT-099 | GTC/GTD orders remain open on merger last cum-date | Record exchange-originated cancellation separately; do not represent it as a user cancel request |
+| AT-100 | Securities/funds delivery fails or auction/closeout occurs | Keep settlement exception states and authoritative auction/closeout evidence; never mark ordinary settlement PASS without it |
+
+
+### Latest requirements baseline status — PX-029
+
+PX-029 adds R-049 through R-061 and AT-076 through AT-100. The consolidated requirements baseline now contains **61 normative requirements (R-001–R-061) and 100 proposed acceptance scenarios (AT-001–AT-100)**. The new expiry/settlement scenarios are specified only; no test was executed and no settlement code was implemented.
