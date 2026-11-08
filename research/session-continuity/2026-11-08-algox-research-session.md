@@ -648,3 +648,28 @@ PX-025 now contains **216 normative requirements and 400 proposed acceptance sce
 No separate constituent-data subscription/licence was acquired and no historical membership files were downloaded. Exact member/weight reconstruction must remain UNKNOWN where the seed snapshot, full event history or authorized constituent/weight dataset is missing. A continuous Nifty index level series is not a substitute.
 
 No member portal, broker endpoint, paid data service, code implementation, PR or merge to main was used.
+
+
+## 28. Backtest execution realism, liquidity and transaction-cost controls (2026-11-08)
+
+PX-2026-040 audits market impact, order-book availability, cash/F&O price limits, LPP, exchange fees, statutory taxes, settlement cycle and delivery-shortage auction risk.
+
+### Findings
+
+- NSE defines impact cost as a liquidity-related execution cost separate from fixed brokerage/transaction/depository charges. It depends on side, predefined order size and current order-book depth; it is dynamic.
+- NSE distinguishes cash-market price bands, F&O futures operating ranges, daily delta-based options ranges and LPP. LPP is an additional F&O validation above OPR; it changes dynamically. An SL-Limit is checked after trigger on release to the book; a rejected modification leaves the original order live; passive orders remain after range flex under the FAQ.
+- NSE/FA/73061 (27 Feb 2026) changes transaction charge/IPFT composition from 1 Mar 2026, with total trading-member outflow preserved: cash ₹307/crore each side, equity futures ₹183/crore each side, options ₹3,553/crore traded premium each side. This is not the all-in client invoice.
+- NSE STT table reflects Finance Act 2026 rates from 1 Apr 2026: equity option sale 0.15% seller on premium; option exercise 0.15% purchaser on intrinsic value; equity futures sale 0.05% seller. Stamp duty, SEBI turnover fee, GST and broker charges are separate.
+- Cash settlement page describes T+1 working-day settlement and optional T+0 with time cutoffs. Short delivery can create valuation debit, buy-in auction and failed-auction close-out; this is a conditional tail event, not the normal cost of every sale.
+
+### Requirements and tests
+
+PX-025 now contains **235 normative requirements and 430 proposed acceptance scenarios**:
+- R-217–R-235 cover cost component separation, size/side/time impact, depth-aware fills, no guaranteed OHLC fills, partial fills, participation cap, price bands/OPR/LPP, stop-limit trigger validation, rejected modifications, passive orders, effective exchange/IPFT charges, statutory tax base, SEBI/GST, broker tariff, exact-decimal rounding, T+1/T+0, conditional auction risk and gross/net P&L provenance.
+- AT-401–AT-430 cover asymmetric depth, multi-level fills, no depth, size impact, delayed books, bar-touch fills, same-close lookahead, stop gaps, partials, participation, zero volume, OPR/LPP, modify/SL triggers, LPP flex, dynamic range, cash/derivatives bands, dated exchange charges, premium turnover, STT bases, stamp, SEBI fee, account tariffs, cost rounding, T+1 holiday, T+0 cutoff and auction close-out.
+
+### Calibration limitation
+
+No historical order book/depth, fee/tax invoice, settlement file or backtest was downloaded/run. PX-040 defines requirements and source-backed controls; it does not claim a calibrated execution model or all-in broker fee schedule.
+
+No broker API, market-feed subscription, live order, code implementation, paid service, PR or merge to main was used.
