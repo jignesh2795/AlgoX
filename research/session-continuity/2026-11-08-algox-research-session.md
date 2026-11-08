@@ -445,3 +445,29 @@ PX-025 now contains **88 normative requirements and 150 proposed acceptance scen
 The UDiFF catalogue page was reviewed. The Annexure B XLSX workbook could not be parsed by the connector and ZIP attachments were unavailable, so field-level layouts and sample rows were not inspected. Any future parser work must close this evidence gap before implementation.
 
 No member portal, broker/clearing endpoint, sandbox, order, code implementation, paid service, PR or merge to `main` was used.
+
+
+## 20. Position limits, MWPL ban period and intraday index risk monitoring (2026-11-08)
+
+PX-2026-032 audits single-stock MWPL/ban controls, entity-level stock position limits and index-derivative intraday monitoring.
+
+### Findings
+
+- SEBI Circular 2025/79 moved single-stock market-wide OI to FutEq/delta-based measurement and changed MWPL calculation to the lower of 15% free float and 65x preceding-three-month ADDV in quantity, with 10% free-float floor; recalculated quarterly.
+- The current FutEq stock-ban trigger is EOD >95% MWPL; ban starts next trading day. Trading resumes only when combined FutEq OI across exchanges is ≤80%.
+- During a ban, Day 1 entity positions are stored as baseline. Subsequent comparisons use the prescribed 2 PM contract delta and EOD positions. Passive delta changes are distinguished from active position increases; sign-change rules and expiry-passive treatment are retained.
+- NCL/CMPT/70271 (18 Sep 2025) defined entity scopes and 2025 single-stock percentage limits. However NCL/CMPT/76459 (21 Sep 2026) updates the security-wise MWPL/TM/FPI/MF/proprietary/client schedule effective 1 Oct 2026. Its Annexure I was not retrievable, so the 2025 percentage list is not treated as the current security-level schedule.
+- Index intraday monitoring uses at least four random snapshots. SEBI 2025/41 distinguished existing-limit intraday monitoring from penalty. NSE/SURV/71673 (5 Dec 2025) confirms expiry-day index-option ASD from 8 Dec 2025, held for one month, with intraday ASD at 1.5x computed ASD; it says non-expiry-day intraday ASD does not apply.
+- Position-limit enforcement, MWPL ban penalties, index-option expiry ASD, margin shortfall and TM-level PRISM utilization are separate controls.
+
+### Requirements and test amendments
+
+PX-025 now contains **101 normative requirements and 180 proposed acceptance scenarios**:
+- R-089–R-101 cover effective-dated limit schedules, cross-member client aggregation, FutEq/delta, quarterly MWPL, 95/80 ban thresholds, Day 1 base positions, passive delta movement, current entity categories, random intraday snapshots, expiry-only ASD, rule-version scoping, data completeness and separation from margin/PRISM.
+- AT-151–AT-180 cover stale parameters, cross-member position aggregation, missing delta, MWPL formula, quarterly changes, 95/80 thresholds, ban baselines, sign-change rules, passive changes, expiry roll-off, 2026 schedule, category limits, intraday snapshots, expiry ASD and independent margin/position-limit outcomes.
+
+### Current-data limitations
+
+The NCL/CMPT/76459 Annexure I security-level table and exact 2025/122 PDF threshold details were not inspected. The research records the effective circular references and refuses to substitute stale 2025 values. A live control must fail closed when its current effective limit/delta/ban data is unavailable.
+
+No broker/member portal, broker/clearing endpoint, sandbox, order, code implementation, paid service, PR or merge to `main` was used.
