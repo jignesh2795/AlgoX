@@ -571,3 +571,26 @@ PX-025 now contains **162 normative requirements and 310 proposed acceptance sce
 - AT-281–AT-310 cover token namespace, current/next expiry, strike/option type, ISIN/index handling, unmatched rows, lot/tick/unit conflicts, float/timezone errors, alias collisions and transitions, expired aliases, corporate actions, venue, provider schema, stale masters and incomplete promotion.
 
 No provider file download, API call, parser, code change or order was performed.
+
+## 25. Market-data identity, timestamp semantics, freshness and historical continuity (2026-11-08)
+
+PX-2026-037 audits provider market-feed timestamps, session state, disconnect/reconnect semantics and historical candle continuity.
+
+### Official feed findings
+
+- **Kite:** REST quote `timestamp` is the exchange timestamp of the quote packet; `last_trade_time` is separate. WebSocket full quote packets include last-trade timestamp and exchange timestamp; index packets have a distinct shorter schema. Kite's continuous-history feature covers daily candles for expired NFO/MCX futures, not general intraday expired-contract history.
+- **Upstox V3:** the first feed message is `market_info` with per-segment status and `currentTs`; the second is a market snapshot; subsequent updates are live feed. Per-instrument `ltpc.ltt` is last-trade time; `currentTs` is described as timestamp of the received tick, not exchange timestamp.
+- **DhanHQ v2:** binary tick/quote/full packets carry LTT epoch time and market values; the reviewed packet schemas do not expose a separate exchange quote-update timestamp. Dhan sends ping every 10 seconds, closes after more than 40 seconds without pong, and provides a disconnect reason code.
+- **Historical:** Kite's continuous option supports daily expired-futures candles; Dhan daily history is back to inception, intraday intervals 1/5/15/25/60 minutes for up to five years, and each intraday request is limited to 90 days.
+
+### Core design decisions
+
+Keep exchange event time, last-trade time, provider message time, local receive time, persistence time and candle bucket/session time separate. Trade freshness does not prove quote/depth freshness; ping/pong does not prove data completeness. Reconnect snapshot or historical bar backfill cannot recreate missing tick/depth events. Never synthesize missing bars or merge conflicting providers using last-arrival-wins.
+
+### Requirements and tests
+
+PX-025 now contains **177 normative requirements and 340 proposed acceptance scenarios**:
+- R-163–R-177 cover distinct timestamp semantics, raw timestamp units, freshness by data component, local monotonic timing, provider schema semantics, canonical identity linkage, packet variants, session evidence, liveness vs completeness, explicit gaps, reconnect/backfill limits, use-case freshness, historical candle identity, continuous-series lineage and missing/source-conflict handling.
+- AT-311–AT-340 cover Kite/Upstox/Dhan timestamps, packet schemas, market status, LTT-vs-currentTs, transport timeout, stale/no-trade distinctions, clock skew, timestamp units, reconnect gaps, historical backfill, Kite continuous daily scope, Dhan 90-day range and date inclusivity, candle source differences, roll lineage, holidays and cross-provider conflicts.
+
+No live feed, historical API, broker account, code or order was used.
