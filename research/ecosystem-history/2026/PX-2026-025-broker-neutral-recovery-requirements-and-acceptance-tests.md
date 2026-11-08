@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **197 normative requirements (R-001–R-197) and 370 proposed acceptance scenarios (AT-001–AT-370)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **216 normative requirements (R-001–R-216) and 400 proposed acceptance scenarios (AT-001–AT-400)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1390,3 +1390,93 @@ PX-025 now contains **197 normative requirements (R-001–R-197) and 370 propose
 - NSE's adjusted 52-week values do not establish a full adjusted historical OHLCV dataset. The exact adjustment methodology for any third-party adjusted series must be separately documented.
 - NSE's derivatives corporate-action methodology is not a complete cash-equity total-return price-adjustment methodology.
 - The complete historical point-in-time index constituent/universe history, delisting archive and all corporate-action event revisions were not downloaded in this pass.
+
+
+## 25. Point-in-time security universe and index membership reconstruction (2026-11-08)
+
+PX-2026-039 reviews public NSE/NSE Indices historical-level pages, the index-data product/rights page, May 2026 equity-index methodology, the reconstitution calendar and the historical press-release archive. See [PX-2026-039 — Point-in-time security universe and index membership reconstruction](PX-2026-039-point-in-time-universe-and-index-membership-reconstruction.md).
+
+### Additional normative requirements
+
+**R-198 — Index levels and constituent membership are separate datasets.** The system MUST model historical index OHLC/returns and point-in-time constituent membership as distinct datasets. A continuous index-level series MUST NOT be treated as proof of the constituent identifiers, weights or eligibility state for every historical date.
+
+**R-199 — Index methodology is versioned and effective-dated.** Every index reconstruction MUST pin the exact index methodology document/version, publication date, effective interval, index product and relevant rule clauses. The May 2026 methodology MUST NOT be applied retrospectively unless an archived effective version supports that historical rule.
+
+**R-200 — Reconstitution calendar is a schedule, not the actual event record.** The system MUST preserve the published index reconstitution calendar separately from each event-specific press release/notification and actual effective date. A changed schedule or ad-hoc notice MUST supersede the applicable planned date without deleting the original schedule evidence.
+
+**R-201 — Index change events preserve announcement and effective timestamps.** Every addition, deletion, replacement, weight change, deferment or cancellation MUST retain announcement/publication time, decision/notice date, effective session boundary and source document. A known future change MUST NOT be applied to active membership before its stated effective time.
+
+**R-202 — Historical constituent event ledger is append-only.** The system MUST preserve each source notice and its membership actions as immutable events, including revised, postponed, nullified and withdrawn changes. A later notice MUST NOT overwrite the earlier announcement; the as-known and as-effective state must be derivable independently.
+
+**R-203 — Membership reconstruction requires a complete seed and event chain.** The system MUST require a verified seed constituent snapshot plus complete additions/deletions and ad-hoc event chain for the reconstruction period. If any period/event is missing or unverified, exact membership MUST remain UNKNOWN from the point where completeness is lost.
+
+**R-204 — Constituents, weights, IWF and shares are separate effective-dated facts.** The system MUST preserve membership status, constituent weight, free-float/IWF, shares outstanding, market capitalisation, capping and divisor adjustments independently. A weight change MUST NOT be represented as an add/delete unless the source explicitly states membership changed.
+
+**R-205 — Index-specific methodology cannot be generalized across products.** Scheduled review cadence, eligibility, buffers, cap limits, data windows, parent-index dependencies and ad-hoc triggers MUST be evaluated from the correct index-specific methodology. The Nifty 50 semi-annual schedule MUST NOT be applied to all broad-market, sectoral, thematic, strategy or fixed-income indexes.
+
+**R-206 — Eligibility metrics use historical point-in-time inputs.** Where an index rule uses free-float market capitalisation, market capitalisation, trading frequency, F&O eligibility, impact cost or turnover, reconstruction MUST use the exact historical observation window, cut-off date, classification and source vintage applicable to that review. Current eligibility values MUST NOT be backfilled.
+
+**R-207 — Parent/child index dependency is versioned and time-aware.** Where an index draws its eligible universe or composition from a parent index, the system MUST pin the parent index methodology, membership version, announced changes and effective state used for the child review. An announced-but-not-effective parent change MUST NOT be silently treated as active child membership.
+
+**R-208 — Ad-hoc index reconstitution is event-driven.** The event pipeline MUST support additional reconstitution due to merger, demerger, scheme of arrangement, delisting, suspension, F&O trading-eligibility loss, BZ-series movement or other methodology-defined exceptional events. It MUST NOT wait for the next scheduled review when the source requires an ad-hoc change.
+
+**R-209 — Suspension, delisting and removal end tradability without deleting history.** A security removed/suspended/delisted from the index or exchange MUST retain its historical identity, membership interval, final available price and relevant event/consideration/settlement data. The system MUST mark it non-tradable for the applicable date without deleting it from historical universes.
+
+**R-210 — Reconstitution limits and exceptions are applied literally.** Any maximum additions/replacements or buffer rule MUST be bound to the correct index and review type. Explicit exceptions for forced exclusions and corporate events MUST be applied only where the applicable methodology says so; a cap on scheduled additions MUST NOT block a mandatory ad-hoc exclusion.
+
+**R-211 — Actual effective boundary is session-specific.** A constituent change announced as effective on a date or at a close boundary MUST be applied using the stated exchange session boundary and holiday calendar. The system MUST preserve pre-change membership through the last valid old-composition session and activate the new composition at the source-defined effective point.
+
+**R-212 — Index divisor continuity is separate from portfolio return/accounting.** Index divisor adjustments used to maintain index-level continuity MUST be stored separately from security portfolio cash flows, dividends, shares and actual historical execution prices. A divisor adjustment MUST NOT be booked as a client cash flow or used to rewrite raw security price history.
+
+**R-213 — Press-release archives are event evidence, not a complete weight history by default.** The system MUST treat press releases as source-backed membership-change events and reasons. It MUST NOT assume that event notices provide full daily constituent weights, IWF, shares outstanding or all intermediate weight changes. Exact weight history requires the corresponding complete authoritative data source.
+
+**R-214 — Constituent data licensing and entitlement are recorded.** Every historical index constituent/weight dataset MUST record its source product, acquisition/entitlement basis, redistribution/use constraints, coverage interval and file provenance. Public access to index levels MUST NOT be treated as permission or proof of access to proprietary constituent compilation/composition data.
+
+**R-215 — Current methodology/calendar snapshots are not historical truth.** Each backtest MUST use the methodology and schedule effective for the historical review date. A current reconstitution calendar or current eligibility criteria MUST NOT be retroactively applied to historical index membership without dated evidence.
+
+**R-216 — Point-in-time universe completeness is an explicit backtest gate.** A backtest claiming survivorship-bias-free index/member screening MUST demonstrate a complete historical universe and constituent/event chain for the entire tested period. If the data product/coverage does not prove completeness, the result MUST be labelled approximate/UNKNOWN and MUST NOT claim exact historical index replication.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-371 | Historical index level series exists from 1990 but no constituent file is supplied | Permit index-level research only; exact constituent membership remains UNKNOWN |
+| AT-372 | Current Nifty 50 constituents are supplied for a backtest beginning in 2005 | Reject point-in-time membership claim; do not backfill current members |
+| AT-373 | Verified seed membership and complete event notices are supplied | Reconstruct membership intervals and preserve each source event/provenance |
+| AT-374 | An index press release is announced on one date and effective at a later close | Keep announced membership separate from active membership until the correct effective boundary |
+| AT-375 | Reconstitution calendar lists last working day of March/September but a separate notice changes the schedule | Preserve calendar and notice; use the operative revised date without deleting planned schedule |
+| AT-376 | Nifty 50 scheduled review uses January/July six-month data and March/September implementation | Apply the Nifty 50-specific data window and effective date; do not generalize it to other indexes |
+| AT-377 | Methodology revision becomes effective after the historical review being tested | Use the earlier effective methodology; do not apply the later threshold/cadence retrospectively |
+| AT-378 | A child index review sees a parent-index change announced but not yet effective | Preserve the methodology's parent-review knowledge scope while keeping actual membership as-of effective time distinct |
+| AT-379 | Parent index composition is missing for one historical review | Child-index membership becomes UNKNOWN; do not infer from current parent membership |
+| AT-380 | Nifty 50 addition fails the current F&O availability or trading-frequency criterion | Do not include it based solely on market-cap ranking |
+| AT-381 | Six-month impact-cost or free-float market-cap input is missing | Eligibility decision UNKNOWN; do not approximate the threshold from current values |
+| AT-382 | Candidate stock meets the market-cap threshold but the index replacement cap has been reached | Apply the exact index/review addition cap and applicable exceptions; preserve deferred candidate status |
+| AT-383 | Existing constituent is removed due to suspension/delisting during scheduled review window | Apply the methodology's ad-hoc/forced-exclusion path; do not wait for the next periodic review if rule requires earlier action |
+| AT-384 | A merger or scheme of arrangement changes the constituent identity | Preserve predecessor/successor security identities, action date, consideration and index replacement event |
+| AT-385 | An F&O-eligibility change triggers an ad-hoc index exclusion | Record loss of eligibility and exact effective date; do not leave a stale constituent as tradable |
+| AT-386 | A company moves to BZ series and the index methodology treats it as an ad-hoc removal trigger | Trigger the applicable index event; preserve source notification and resulting constituent state |
+| AT-387 | A reconstitution notice is postponed and later nullified | Preserve all versions; derive the membership state effective after the final valid notice |
+| AT-388 | Two index notices overlap or conflict on the same constituent/effective date | Resolve using explicit issuer/supersession authority; otherwise membership status UNKNOWN |
+| AT-389 | One constituent remains in index but its IWF/weight is revised | Record a weight/IWF change, not a membership add/delete |
+| AT-390 | Index weight drifts daily because of market-price changes between rebalances | Recompute/observe weight as-of date if source permits; do not misclassify natural drift as a constituent event |
+| AT-391 | Quarterly weight alignment and semiannual membership reconstitution occur at different boundaries | Preserve each event class and effective date independently |
+| AT-392 | Press-release archive supplies additions/deletions but no full weight or IWF file | Event ledger may be complete for membership if event chain is sufficient; exact portfolio-weight replication remains UNKNOWN |
+| AT-393 | Index divisor changes to maintain continuity after constituent/corporate action event | Preserve divisor event separately from portfolio cash/units and raw security price history |
+| AT-394 | Index methodology PDF changes version but parser still uses old criteria | Invalidate affected point-in-time membership reconstruction and rebuild with correct effective methodology |
+| AT-395 | NSE Indices constituent data is available only under separate entitlement and local test has no entitlement evidence | Block claim of full constituent-history coverage; public index-level data does not grant constituent-data rights |
+| AT-396 | Nifty 50 methodology states max five additions per calendar year but an eligibility/forced-exclusion exception applies | Apply the exact stated exception; do not turn the addition limit into a universal no-change cap |
+| AT-397 | Index reconstitution calendar changes after a methodology-specific notice | Reconcile current calendar to the effective official notice; preserve prior schedule vintage |
+| AT-398 | A backtest universe includes only securities with surviving/current tickers | Flag survivorship bias; require historical identity and delisted/merged security evidence |
+| AT-399 | Current index methodology contains a selection threshold not present in the historical version | Use historical version or return UNKNOWN; no retrospective rule substitution |
+| AT-400 | Backtest claims exact historical index replication but lacks a seed membership snapshot, event chain or weight/IWF data | Fail reproducibility/completeness gate; label approximate/UNKNOWN rather than PASS |
+
+PX-025 now contains **216 normative requirements (R-001–R-216) and 400 proposed acceptance scenarios (AT-001–AT-400)**. These are proposed tests only; no constituent files or historical index data products were downloaded and no index backtest was executed.
+
+### Source and entitlement limitations
+
+- Public historical index data exposes index-level history; exact per-date constituent/weight coverage without a separate data product was not established.
+- NSE Indices identifies constituent data as a separate product and reserves proprietary rights over index compilation/composition. No data subscription or licensing entitlement was acquired in this research.
+- The public press-release archive contains event notices, but its completeness for every index and all historical periods has not been validated.
+- Historical weights, IWF, shares outstanding and divisor-adjustment files require their own dated authoritative sources.
+- The May 2026 methodology is a current snapshot; earlier methodology versions must be retrieved before reconstructing older periods.
