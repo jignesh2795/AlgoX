@@ -456,7 +456,7 @@ PX-2026-032 audits single-stock MWPL/ban controls, entity-level stock position l
 - SEBI Circular 2025/79 moved single-stock market-wide OI to FutEq/delta-based measurement and changed MWPL calculation to the lower of 15% free float and 65x preceding-three-month ADDV in quantity, with 10% free-float floor; recalculated quarterly.
 - The current FutEq stock-ban trigger is EOD >95% MWPL; ban starts next trading day. Trading resumes only when combined FutEq OI across exchanges is ≤80%.
 - During a ban, Day 1 entity positions are stored as baseline. Subsequent comparisons use the prescribed 2 PM contract delta and EOD positions. Passive delta changes are distinguished from active position increases; sign-change rules and expiry-passive treatment are retained.
-- NCL/CMPT/70271 (18 Sep 2025) defined entity scopes and 2025 single-stock percentage limits. However NCL/CMPT/76459 (21 Sep 2026) updates the security-wise MWPL/TM/FPI/MF/proprietary/client schedule effective 1 Oct 2026. Its Annexure I was not retrievable, so the 2025 percentage list is not treated as the current security-level schedule.
+- NCL/CMPT/70271 (18 Sep 2025) defined entity scopes and the 2025 single-stock percentage limits. A secondary circular index surfaced NCL/CMPT/76459 as a later update (purportedly dated 21 Sep 2026, effective 1 Oct 2026), but the official NSE archive PDF was inaccessible; its metadata and Annexure I therefore remain unverified here. The 2025 percentage list is not treated as the current schedule.
 - Index intraday monitoring uses at least four random snapshots. SEBI 2025/41 distinguished existing-limit intraday monitoring from penalty. NSE/SURV/71673 (5 Dec 2025) confirms expiry-day index-option ASD from 8 Dec 2025, held for one month, with intraday ASD at 1.5x computed ASD; it says non-expiry-day intraday ASD does not apply.
 - Position-limit enforcement, MWPL ban penalties, index-option expiry ASD, margin shortfall and TM-level PRISM utilization are separate controls.
 
@@ -468,6 +468,6 @@ PX-025 now contains **101 normative requirements and 180 proposed acceptance sce
 
 ### Current-data limitations
 
-The NCL/CMPT/76459 Annexure I security-level table and exact 2025/122 PDF threshold details were not inspected. The research records the effective circular references and refuses to substitute stale 2025 values. A live control must fail closed when its current effective limit/delta/ban data is unavailable.
+The NCL/CMPT/76459 reference came from a secondary circular index; the official archive PDF and Annexure I security-level table were not inspected. Exact 2025/122 PDF thresholds were also not retrieved. NSE's 19 Nov 2025 position-limits page lists a 60% OI alert every 10 minutes, but whether the alert was migrated to FutEq is not established. The research records the effective circular references and refuses to substitute stale 2025 values. A live control must fail closed when its current effective limit/delta/ban data is unavailable.
 
 No broker/member portal, broker/clearing endpoint, sandbox, order, code implementation, paid service, PR or merge to `main` was used.
