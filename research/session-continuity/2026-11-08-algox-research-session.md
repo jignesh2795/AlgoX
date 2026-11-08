@@ -546,3 +546,28 @@ PX-025 now contains **147 normative requirements and 280 proposed acceptance sce
 All are proposed tests; no file parser or exchange integration was run.
 
 No exchange/member portal access, broker/API call, sandbox, order, code change, paid service, PR or merge to `main` was used.
+
+
+## 24. Cross-provider instrument identity and effective-dated contract mapping (2026-11-08)
+
+PX-2026-036 separates immutable canonical underlying/contract identity from Kite, Upstox and Dhan provider aliases.
+
+### Official provider-master findings
+
+- **Kite:** daily gzipped CSV. The `last_price` field is not real-time. Kite expressly warns instrument tokens may be reused for different derivative instruments after expiry and recommends exchange + tradingsymbol rather than numeric token as the storage key.
+- **Upstox:** current JSON BOD files are recommended over deprecated CSV. The docs identify `instrument_key` as unique, warn `exchange_token` can be reused after expiry, and publish separate suspended, MTF, MIS, mutual-fund and global instrument datasets. The daily refresh is around 6 AM with possible intraday refreshes; next-day BOD omits expired/delisted instruments.
+- **Dhan:** publishes compact and detailed CSV scrip masters plus a segmentwise instrument endpoint. Detailed rows expose exchange/segment, ISIN, underlying security ID/symbol, series, lot, expiry, strike, option type, tick and additional eligibility flags. A global all-time uniqueness guarantee for the raw Dhan securityId was not established.
+
+### Canonical mapping rule
+
+Use immutable canonical identity for the economic underlying/contract, then map provider-scoped aliases with provider/API/schema, exchange segment and effective interval. Complete matching requires underlying identity, venue/segment, contract family, expiry, exact strike, option type and relevant contract attributes. No fuzzy symbol match or cross-provider token equality may authorize an order.
+
+Daily provider files for 8 November 2026 were not downloaded or parsed; no row-level crosswalk was built.
+
+### Requirements and tests
+
+PX-025 now contains **162 normative requirements and 310 proposed acceptance scenarios**:
+- R-148–R-162 cover canonical identity versus aliases, provider namespace, effective validity, authoritative underlying identity, complete contract terms, exact normalization, unique exact match, attribute cross-checking, separate provider-master versioning, venue route, corporate-action successor links, historical-only expired aliases, collision quarantine, atomic crosswalk and fail-closed UNKNOWN.
+- AT-281–AT-310 cover token namespace, current/next expiry, strike/option type, ISIN/index handling, unmatched rows, lot/tick/unit conflicts, float/timezone errors, alias collisions and transitions, expired aliases, corporate actions, venue, provider schema, stale masters and incomplete promotion.
+
+No provider file download, API call, parser, code change or order was performed.
