@@ -220,3 +220,24 @@ Source references added to PX-2026-023:
 - v1.15: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/NSE_Hist_Order_Trade_Data_1.15.pdf
 - CM sample: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Sample_CMsegment.zip
 - FO sample: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Sample_FOsegment.zip
+
+
+## 11. Replay feasibility verdict and documentation correction (2026-11-08)
+
+**Current status: order-event reconstruction is feasible in principle; exact deterministic replay remains unproven.**
+
+The v1.11 historical research files contain per-order lifecycle events and trade records with buy/sell order references. However, the reviewed public layouts do not expose a per-event sequence number or an explicit guarantee for ordering equal-jiffy events across separate order/trade files. Trigger files provide MD5 and byte-size checks, which prove delivered-file integrity but not event-level completeness/order.
+
+The historical research-data format is versioned: v1.10 is dated 27 July 2022; v1.11 is dated 15 December 2023. A separate archived document also labelled v1.11 is dated 20 June 2022 and has different content. Always pin the full URL, document date and segment, not just the version number.
+
+There is also an F&O quantity-unit discrepancy:
+- v1.11 (2023), v1.12 (2024), v1.14 and v1.15 (2025) describe FAO quantities as underlying shares.
+- v1.18 (2026) states that derivative volumes are in contract units requiring lot-size conversion.
+
+This is unresolved as a specification change or correction. 2023 research must use the date-specific v1.11 specification as its initial interpretation, with actual sample rows/lot-size checks required before any numeric replay claim.
+
+The current NSE CM/FO sample ZIP links were found on the official page but could not be downloaded in the research environment; they have not been inspected. Do not claim that a sample parser or replay was validated.
+
+The next task is to test whether the file-order contract and quantity units can be verified from authorized sample data or NSE research access. Until then, report an event-order ambiguity state rather than a deterministic result. After that, continue with broker disconnect/reconnect, ambiguous submission outcomes and reconciliation.
+
+The earlier wording that described historical data as having "consistent sequencing" was corrected in PX-2026-023. The research note now distinguishes file integrity, order-event reconstruction, trade linkage, event-ordering confidence and unit validation.
