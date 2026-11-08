@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **178 normative requirements (R-001–R-178) and 340 proposed acceptance scenarios (AT-001–AT-340)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **197 normative requirements (R-001–R-197) and 370 proposed acceptance scenarios (AT-001–AT-370)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1299,3 +1299,94 @@ PX-2026-037 audits timestamp domains and market-feed semantics across Kite, Upst
 | AT-340 | Option LTP updates but OI/Greeks have no documented matching observation time | Keep LTP and OI/Greeks freshness separate; do not stamp all fields with LTT |
 
 PX-025 now contains **178 normative requirements (R-001–R-178) and 340 proposed acceptance scenarios (AT-001–AT-340)**. These are proposed tests only; no market feed, data request, decoder, time-series store or backtest engine was executed.
+
+
+## 24. Historical price integrity, corporate actions and backtest reproducibility (2026-11-08)
+
+PX-2026-038 reviews NSE daily EOD formats, cash/F&O historical archives, corporate-action disclosures and Price Return versus Total Returns Index conventions. See [PX-2026-038 — Historical price integrity, corporate actions and backtest reproducibility](PX-2026-038-historical-price-integrity-corporate-actions-and-backtest-reproducibility.md).
+
+### Additional normative requirements
+
+**R-179 — Raw, adjusted, settlement and total-return prices are separate types.** The system MUST distinguish actual raw exchange prices, corporate-action-adjusted research prices, derivative settlement prices, Price Index values and Total Returns Index values. These values MUST NOT be overwritten or substituted for one another.
+
+**R-180 — EOD artifact family and segment are effective-dated.** Every EOD dataset MUST identify the source report family, segment, file format, distribution channel, effective date, circular/schema version and parser profile. CM, FO and index reports MUST NOT share an assumed universal file schema.
+
+**R-181 — Raw EOD artifacts are immutable and hashed.** The original bhavcopy/UDiFF/DAT/contract-wise archive bytes MUST be preserved with source, trade date, segment, file hash, publication/capture time, file size and parser version. Parsed tables MUST remain traceable to the original artifact.
+
+**R-182 — Bhavcopy format migrations are date-versioned.** The loader MUST apply the 8 July 2024 transition from discontinued CM/F&O legacy bhavcopy CSV formats to the corresponding UDiFF Common Bhavcopy Final ZIP. It MUST also apply NSE/MSD/74764's 12 October 2026 discontinuation of the older .MS/.MD Extranet files and NNF API broadcast formats where the segment-specific effective notice applies. Old source formats may remain valid for historical dates but MUST NOT be treated as current.
+
+**R-183 — Data corrections create new vintages.** If a corrected/reissued EOD report is encountered, the system MUST preserve the original and replacement as separate vintages, capture their hashes/timestamps and record the supersession relationship. A backtest MUST declare whether it uses first-published or latest-corrected data; a new vintage MUST NOT silently overwrite the source of a prior result.
+
+**R-184 — Corporate-action event dates and status are explicit.** Every corporate action MUST preserve announcement date/time, ex-date, record date, book-closure dates where applicable, event terms, status/version, source reference and affected canonical security identity. Record date MUST NOT be substituted for ex-date or announcement date.
+
+**R-185 — Cash-equity raw prices and adjusted research prices remain separate.** Actual bhavcopy OHLC/volume MUST remain raw and immutable. Any adjusted price series MUST be a separate derived dataset with event, factor, adjustment direction, rounding and builder version. NSE's derivative contract adjustment formula MUST NOT be applied as a generic cash-equity OHLC adjustment method.
+
+**R-186 — Price Return and Total Return series are separate.** The system MUST preserve Price Index and Total Returns Index as distinct benchmark datasets. If a backtest includes dividends through TRI or an adjusted portfolio return, it MUST NOT credit/reinvest the same dividend a second time.
+
+**R-187 — Dividend entitlements are not double-counted.** For individual-equity portfolio backtests, a dividend MUST be represented either through an explicit portfolio cash-flow/reinvestment ledger or through a fully documented total-return/adjusted-series convention. The selected approach MUST be declared and the same dividend MUST NOT be counted in both price adjustment and cash credit.
+
+**R-188 — Derivative Close, LTP and Settle Price are distinct.** Historical F&O ingestion MUST retain the separate close, LTP and daily settlement price fields where supplied, along with volume/contracts, turnover, OI/change-in-OI and underlying value. Daily MTM/settlement calculations MUST use the applicable clearing settlement price; execution simulation MUST NOT treat settlement price as an executable trade quote.
+
+**R-189 — Historical derivatives retain the actual dated contract identity.** Each historical option/future row MUST retain exchange/segment, instrument/contract identity, underlying, expiry, strike, option type, lot/quantity unit and effective contract master. A continuous root symbol or current contract token MUST NOT replace the actual expired contract identity.
+
+**R-190 — Point-in-time universe includes removed and restricted securities.** Historical universe construction MUST retain securities/contracts listed, eligible, suspended, delisted, merged or otherwise restricted on the historical date where official evidence is available. A current-only universe MUST NOT be presented as survivorship-bias-free history.
+
+**R-191 — Index membership and methodology are point-in-time.** Index backtests MUST use constituent membership, weighting and methodology effective for each historical rebalance period. Current constituents MUST NOT be applied retrospectively to earlier dates. Price-index and TRI membership/methodology versions MUST be retained.
+
+**R-192 — Corporate-action knowledge time prevents lookahead.** A backtest that simulates decisions at historical time T MUST only use corporate-action terms/announcements available by T. Later revised terms or post-event files MUST not be exposed as if they were known earlier. Announcement, capture, ex-date, record date and effective timestamps MUST remain distinct.
+
+**R-193 — Historical coverage and missing sessions are explicit.** Every security/contract/date range MUST record expected trading sessions, observed rows, missing bars, suspensions, zero-trade sessions, expired instruments and source retention gaps. Missing records MUST NOT be silently filled with a prior close and treated as a real traded observation.
+
+**R-194 — OHLCV, settlement, turnover and delivery units retain source semantics.** Volume, contracts, shares, traded value, premium turnover, notional turnover, deliverable quantity, OI and settlement values MUST retain their source definitions, units and segment. Option premium turnover MUST NOT be equated with notional turnover or cash-equity traded value.
+
+**R-195 — Adjustment factors are sourced and reproducible.** Every corporate-action adjustment factor MUST retain the official event terms, calculation basis, rounding/tick/lot rules, effective date and source/policy version. An adjustment MUST NOT be inferred solely from a price jump or from a current adjusted-high/low statistic.
+
+**R-196 — Adjusted-series builder has an explicit policy version.** Any derived adjusted-price or continuous futures research series MUST record algorithm version, adjustment direction, event inclusion policy, roll policy, dividend treatment, price/volume/OI adjustment, rounding, source vintages and output hash. A derived series MUST be reproducible independently of raw source data.
+
+**R-197 — Backtest results pin a complete data manifest.** Every backtest/research result MUST pin the dataset manifest, source hashes/vintages, historical universe, index membership, contract identities, corporate-action policy, total-return convention, market calendar, adjustment/roll algorithm and data-gap report. A result without these inputs MUST NOT be labelled fully reproducible.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-341 | Historical CM report date is before the 8 July 2024 UDiFF transition | Select the historical source format/schema effective on that date; preserve its vintage |
+| AT-342 | CM/F&O legacy bhavcopy CSV is requested for a current date after the documented transition | Reject as a current source and select the effective UDiFF Common Bhavcopy Final ZIP |
+| AT-343 | Extranet .MS/.MD or NNF bhavcopy broadcast arrives after 12 October 2026 | Mark legacy dissemination as discontinued for the applicable segment; do not silently promote it as current |
+| AT-344 | .DAT bhavcopy and UDiFF common bhavcopy exist for the same segment/date | Keep distinct source artifacts and schemas; reconcile under an explicit source policy rather than assuming byte/row equality |
+| AT-345 | Raw bhavcopy close differs from corporate-action-adjusted 52-week high/low reference | Preserve raw close and adjusted statistic as separate types; no overwrite |
+| AT-346 | Corporate-action record has announcement, ex-date and record date | Preserve each date independently; apply entitlement/price transition on the correct effective date |
+| AT-347 | Bonus or stock split changes share count and economic price basis | Preserve raw OHLC; produce a separate factor-versioned adjusted series and correct unit/share transition |
+| AT-348 | Cash dividend is included in a TRI benchmark and also credited in the portfolio ledger | Detect dividend double count; choose one consistent total-return treatment |
+| AT-349 | Rights issue has entitlement ratio, issue price and ex-date | Use event-specific source terms; do not apply a generic split/bonus factor |
+| AT-350 | Merger/demerger changes security identity and consideration/share entitlement | Preserve predecessor/successor IDs, event ratio, cash/stock consideration and non-trade event; no symbol-only roll |
+| AT-351 | Corporate-action announcement is revised or withdrawn after initial publication | Retain both versions and use the status known at the backtest as-of time |
+| AT-352 | Equity daily file contains raw OHLC but adjusted 52-week reference fields | Keep actual bhavcopy prices and adjusted reference columns separate |
+| AT-353 | Index Price Return and TRI have different performance due to dividends | Benchmark against the selected return convention; never claim price-only index equals total-return index |
+| AT-354 | Historical F&O row has Close, LTP and Settle Price with different values | Preserve each field; use settlement price for applicable daily MTM and close/LTP only for their defined market-price use |
+| AT-355 | NIFTY future expires and next expiry becomes active | Retain separate dated contract IDs; construct continuous root series only with explicit roll and adjustment policy |
+| AT-356 | Option contract is expired and absent from the current contract master | Resolve via the historical contract/alias snapshot; never substitute a current expiry token |
+| AT-357 | Index backtest uses today's constituents for a historical year | Flag survivorship/lookahead bias; require point-in-time historical constituent set |
+| AT-358 | Security was suspended or delisted and has no ordinary price row for a period | Preserve non-tradable/missing state; do not forward-fill into a tradable execution signal |
+| AT-359 | A corrected bhavcopy vintage is received after an earlier backtest | Preserve old/new hashes; prior result remains pinned to its original vintage or is explicitly rerun |
+| AT-360 | Corporate action was announced after the simulated strategy decision time | Prevent use of the later announcement/terms in that earlier decision; no lookahead |
+| AT-361 | Split/bonus causes an apparent raw price discontinuity across ex-date | Keep raw prices unchanged and verify a separate adjusted-series continuity calculation without changing historical trade prints |
+| AT-362 | A cash dividend is modelled as cash in portfolio accounting and TRI is used as an additional portfolio credit | Prevent duplicate dividend return; document benchmark vs portfolio accounting treatment |
+| AT-363 | Derivative corporate-action adjustment changes strike and lot, while cash-equity OHLC remains raw | Apply derivative-specific contract adjustment to derivative identity only; do not rewrite cash OHLC by that formula |
+| AT-364 | F&O archive uses option premium turnover and notional turnover in separate displays | Preserve correct unit/definition and prohibit turnover-field substitution |
+| AT-365 | Volume is zero but close/settlement price is carried in a report | Distinguish zero-trade/settlement-reference data from an actual executed trade; do not fabricate volume |
+| AT-366 | Contract settlement price is revised or published separately from the market close | Preserve source, time and value of each; settlement reconciliation uses the effective clearing source |
+| AT-367 | EOD parser sees an old schema/format after the 2024 or 2026 transition | Reject current semantic parsing; retain historical parser only for dates when that format applied |
+| AT-368 | Two rows appear for the same security/contract/trade date with distinct source identifiers or report roles | Apply exact report key/source role; do not pick one row silently or double-count it |
+| AT-369 | Historical dataset combines provider candles from different corporate-action or contract-master vintages | Mark mixed-vintage dataset incomplete/UNKNOWN until reconciled under one explicit policy |
+| AT-370 | Backtest output is created without hashes, universe, action policy or return convention | Refuse reproducibility PASS; emit a manifest-completeness exception |
+
+PX-025 now contains **197 normative requirements (R-001–R-197) and 370 proposed acceptance scenarios (AT-001–AT-370)**. These are proposed tests only; no historical dataset was downloaded, adjusted, backtested or executed.
+
+### Source and data limitations
+
+- No daily 2026 CM/FO UDiFF ZIP, .DAT bhavcopy or contract-wise historical archive was downloaded or parsed.
+- NSE/MSD/74764 states segment-specific effective dates for the new Extranet .DAT dissemination will be communicated separately; each segment's actual operational date and latest format catalogue must be checked before integration.
+- The exact schema, record-key and correction/reissue semantics for each UDiFF/DAT report version require the corresponding official readme/circular/sample file. This report does not claim a validated parser.
+- NSE's adjusted 52-week values do not establish a full adjusted historical OHLCV dataset. The exact adjustment methodology for any third-party adjusted series must be separately documented.
+- NSE's derivatives corporate-action methodology is not a complete cash-equity total-return price-adjustment methodology.
+- The complete historical point-in-time index constituent/universe history, delisting archive and all corporate-action event revisions were not downloaded in this pass.
