@@ -395,3 +395,90 @@ The next implementation phase should begin only after the following are specifie
 - `PX-2026-001` — agent evolution stack.
 - `PX-2026-002` — agent-native retrieval and research evaluation.
 - Current ecosystem evidence also includes CORAL's isolated worktrees, grader isolation and multi-island evolution, reinforcing the separation between agent execution and independent evaluation.
+
+
+## 13. Research-derived clarifications (2026-11-08)
+
+The September baseline remains valid: AlgoX is a portable provenance/evidence/evaluation substrate, not a monolithic agent runtime. The September–November ecosystem record adds the following clarifications. These are conceptual design refinements, not implementation approval.
+
+### 13.1 Evaluation subject is a complete configuration
+
+A result must be attached to an immutable evaluation subject, not a model label alone:
+
+```text
+EvaluationSubject
+  = ModelCheckpoint
+  + InferenceRuntime / KernelPath / Accelerator
+  + HarnessVersion
+  + Prompt / Skill / Tool / Retrieval / Memory Policies
+  + CapabilityPolicy
+  + EnvironmentVersion
+  + BenchmarkVersion
+  + EvaluatorVersion
+```
+
+This follows the composable Model/Benchmark/Harness/Environment boundary in AgentCompass, long-horizon task design in Android Bench 2.0, and task-specific verified execution in SWE-Serve. Model, harness and environment changes must be attributable independently.
+
+### 13.2 Durable work lifecycle is distinct from an interaction
+
+For long-running coding and research agents, preserve work lifecycle records beyond a chat/session boundary:
+
+- `WorkItem` / `Assignment` — authorized task and trigger identity;
+- `AgentRun` / `AgentStep` — execution identity and ordered progress;
+- `Delegation` — parent/child agent and delegated scope;
+- `Workspace` — isolated filesystem/container and immutable environment reference;
+- `Checkpoint` / `RecoveryEvent` — durable state and restart/reassignment;
+- `Approval` — human or policy gate;
+- `Artifact` — patch, report, build, test and other output;
+- `ExternalEffect` — attempted and observed changes outside the agent process.
+
+A retry must be a new, linked attempt, not a silent overwrite of the previous execution. Parent/child work and their effects must remain attributable.
+
+### 13.3 Authority is a separately enforced, evolving object
+
+Add a conceptual `CapabilityGrant` / `AuthorityContext` referenced by every relevant tool call and external effect. It should identify the principal, delegated-by identity, resources, operations, scope, expiry, policy version and decision. Runtime controls may narrow/revoke authority as behavior or environmental risk changes.
+
+The agent's own natural-language plan is not enforcement. Enforcement belongs in a trusted runtime, OS sandbox, gateway, policy engine or hardware boundary. AlgoX records the request, decision, enforcement evidence and resulting effects.
+
+### 13.4 Inference runtime is a stack, not a single field
+
+The model catalog and evaluation subject should distinguish the model checkpoint from the inference system:
+
+- framework/runtime and version;
+- kernels, quantization and accelerator backend;
+- scheduler, batching and determinism;
+- attention/data/expert parallelism;
+- KV-cache format, sharing/correction and lifecycle;
+- prefill/decode topology and replica balancing;
+- supported hardware and resource envelope;
+- structured-output constraints and serving interface.
+
+Shared-context inference and cache correction are relevant multi-agent capabilities. Record accuracy and isolation alongside latency, throughput and memory.
+
+### 13.5 Retrieval and memory require lifecycle and downstream-utility evidence
+
+Memory evaluation should separately measure capture, update, recall, deletion/forgetting, temporal reasoning, personalization and policy/privacy behavior. Retrieval should be evaluated by downstream task utility, not only embedding similarity or relevance scores. Include abstentions, authority and functional correctness.
+
+### 13.6 Evaluation independence and proof assurance are separate dimensions
+
+An evaluation record should be able to capture evaluator identity, independence/conflict status, access tier, information restrictions, publication rights and redactions. Model identity assertions should be distinguished from cryptographic model commitments and verified inference proofs.
+
+Cryptographic proof is optional assurance evidence, not a universal prerequisite. Record proof-system and verifier versions, exact request/response binding, and tri-state outcome: verified, rejected or not checked.
+
+### 13.7 Dependency and artifact provenance belong in execution evidence
+
+For software agents and inference infrastructure, record package/container identity, version, registry, digest, publisher, signature/attestation, build source and install time where available. A valid signature is not proof that an artifact is benign or that the publishing account was uncompromised. Build and execution environments should use least-privilege, short-lived credentials and explicit network policy.
+
+### 13.8 Promotion gates must account for more than task score
+
+Candidate promotion should consider at least:
+
+- task outcome and regression profile;
+- evaluator integrity and reproduction status;
+- policy compliance and unexplained external effects;
+- data-boundary/privacy violations;
+- dependency/artifact integrity;
+- provenance completeness;
+- resource cost and operational reliability.
+
+A high benchmark score must not compensate for an untrusted evaluator, unbounded authority, unexplained effects or compromised dependencies.
