@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **275 normative requirements (R-001–R-275) and 490 proposed acceptance scenarios (AT-001–AT-490)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **293 normative requirements (R-001–R-293) and 520 proposed acceptance scenarios (AT-001–AT-520)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1836,3 +1836,129 @@ PX-025 now contains **275 normative requirements (R-001–R-275) and 490 propose
 - LIVE uses broker dispatch and asynchronous broker/exchange/account evidence.
 - A simulated or paper fill is never an actual exchange execution. A live broker acknowledgement is not itself a fill.
 - Paper/shadow runtimes must not possess a live order-placement/modification/cancellation capability; mode changes require an explicit epoch boundary and reconciliation.
+
+
+## 29. Cross-mode conformance testing and replay verification (2026-11-08)
+
+PX-2026-043 defines how to verify the PX-042 BACKTEST/PAPER/SHADOW/LIVE semantic contract using immutable scenario fixtures, golden domain traces, mode-specific outcome traces, deterministic replay, fake adapters, failure injection and hard conformance gates.
+
+### Additional normative requirements
+
+### R-276 — Cross-mode conformance is layered
+
+The conformance suite MUST distinguish input/identity, strategy intent, risk semantics, order lifecycle, execution outcome, portfolio/accounting, replay and mode-isolation layers. Exact parity, invariant parity and expected mode variance MUST be specified separately.
+
+### R-277 — Canonical fixtures are immutable and shared
+
+A cross-mode scenario MUST use one immutable versioned fixture containing strategy inputs, market/reference data, portfolio state, risk policy, command input, execution model profiles, event schedule and expected outcomes. Mode runners MUST NOT silently mutate shared inputs to obtain a passing result.
+
+### R-278 — Golden domain trace is separate from mode outcome trace
+
+The harness MUST preserve a common golden trace for canonical intent, risk gates, legal order lifecycle and accounting invariants, plus separate mode-specific outcome traces for fills, timing and external evidence. A matching final P&L MUST NOT substitute for trace conformance.
+
+### R-279 — Divergences are explicitly classified
+
+Every cross-mode mismatch MUST be classified as EXACT, INVARIANT, MODE_EXPECTED, DATA_VARIANCE, EXECUTION_VARIANCE, MODEL_VARIANCE, EXTERNAL_STATE_VARIANCE or UNEXPLAINED. An unexplained divergence MUST prevent a CONFORMANT result.
+
+### R-280 — Conformance layers cannot compensate for hard failure
+
+The suite MUST report results per layer and invariant. A paper/live isolation violation, simulated-as-live fill, risk-gate bypass, duplicate side effect or invalid accounting transition MUST force NON_CONFORMANT regardless of aggregate pass percentage.
+
+### R-281 — Replay manifests pin every deterministic input
+
+Every replay MUST pin fixture/data hashes, strategy/config, risk policy, contract crosswalk, scheduler/clock, decoder, mode adapter, fill/fee/margin/settlement model, seed and event-log version. Missing inputs MUST produce UNKNOWN reproducibility status.
+
+### R-282 — Repeated event delivery is idempotent
+
+The event processor MUST detect and safely handle duplicate/replayed events using source identity and local event provenance. Reprocessing a fill, fee, ledger or settlement event MUST NOT duplicate its economic effect.
+
+### R-283 — Replay supports delay, reordering and gap scenarios
+
+The conformance harness MUST inject delayed, duplicated and out-of-order events, reconnect gaps, snapshots and broker events between bars. It MUST preserve source ordering guarantees and mark unknown causal order rather than manufacturing one.
+
+### R-284 — Checkpoints are transactionally consistent
+
+A replay checkpoint MUST preserve mutually consistent strategy state, order/child-order state, portfolio/ledger state, event offset, clock/scheduler and random generator state. Restart MUST NOT combine state from different event positions.
+
+### R-285 — Fake adapters never fall back to real endpoints
+
+All test and replay adapters MUST be explicit fakes with deterministic fixture-controlled responses. A missing fake capability or injected failure MUST result in an error/UNKNOWN; it MUST NOT route to a real broker, feed, account or exchange endpoint.
+
+### R-286 — Failure injection has explicit expected outcomes
+
+The suite MUST cover transport timeouts, lost acknowledgements, partial responses, order rejection, partial fills, stream gaps, stale data, process restarts, ledger conflict, settlement failure and delayed margin release. Each injected failure MUST have a typed expected state and reason.
+
+### R-287 — Property and metamorphic invariants are tested
+
+The harness MUST test generated event sequences and metamorphic transformations for quantity bounds, unique fill accounting, position roll-forward, ledger arithmetic, idempotent replay, terminal-order rules and mode isolation. Failed seeds and minimized counterexamples MUST be retained.
+
+### R-288 — Mode changes create isolated epochs
+
+Every mode change MUST create a new mode epoch and account namespace after the prior mode is stopped/reconciled. Pending virtual orders MUST NOT be transformed into live commands; external live orders MUST NOT be copied into virtual state as if originated there.
+
+### R-289 — Parity compares semantic outputs and explains execution variance
+
+A parity report MUST compare signal, canonical intent, instrument, gate results, order lifecycle, positions and accounting invariants, while separately recording legitimate mode-specific fill/latency/fee differences. It MUST NOT require identical paper/backtest/live fills.
+
+### R-290 — Conformance outcomes preserve UNKNOWN and NON_CONFORMANT
+
+The suite MUST distinguish CONFORMANT, CONFORMANT_WITH_EXPECTED_VARIANCE, NON_CONFORMANT and UNKNOWN. Missing/incomplete evidence MUST NOT be treated as PASS, and any hard invariant violation MUST force NON_CONFORMANT.
+
+### R-291 — Test run evidence is immutable
+
+Each conformance run MUST retain harness version, fixture hashes, environment, command/configuration, event logs, output traces, seeds, per-assertion results, divergence classifications and final decision. A later successful run MUST NOT delete/overwrite an earlier failed run.
+
+### R-292 — Live capture replay is always synthetic
+
+Replaying captured broker/exchange events through a fake adapter MUST remain labelled replay/synthetic. It MUST NOT create new broker orders, mutate an actual account or be recorded as fresh external trade evidence.
+
+### R-293 — Conformance promotion is hard-gated
+
+A mode or release MUST NOT be promoted by an average test score when any required hard safety, mode-isolation, risk, idempotency, order-state or accounting invariant fails or remains UNKNOWN. Promotion policy and required scenario coverage MUST be versioned.
+
+### Additional deterministic acceptance scenarios
+
+These extend AT-001 through AT-490. Use synthetic scenario fixtures, fake adapters, captured offline event logs, deterministic clocks and generated state-machine sequences only.
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-491 | Same canonical fixture is run through BACKTEST, PAPER, SHADOW and fake LIVE | Produce one shared domain trace and four mode-specific outcome traces tied to the same fixture hash |
+| AT-492 | Strategy intent and risk inputs are equivalent in all four modes | Canonical intent, instrument and mandatory gate outcomes match exactly |
+| AT-493 | Paper fill differs from backtest fill because live quote moved before paper execution | Classify as DATA/EXECUTION_VARIANCE with both timestamps and fill policies; semantic gate result remains comparable |
+| AT-494 | Same final P&L is reached through different order states or instrument identities | Fail trace conformance; final P&L equality is insufficient |
+| AT-495 | A paper adapter tries to call the live order endpoint | Hard NON_CONFORMANT; capability/security test must detect the forbidden route |
+| AT-496 | A fake broker fixture is missing a required response | Return typed UNKNOWN/error; no live endpoint fallback |
+| AT-497 | Same replay manifest, seed and scheduler are executed twice | Event trace and deterministic simulated outputs match exactly |
+| AT-498 | Replay seed changes for a stochastic fill model | Treat as a distinct run; retain seed and do not require output equality |
+| AT-499 | A fill event is delivered twice after a restart | Apply one economic fill only; duplicate event retained as replay evidence |
+| AT-500 | Broker fill arrives before a delayed cancellation acknowledgement | Preserve actual event sequence and legal lifecycle; no contradictory cancelled/filled state without source evidence |
+| AT-501 | Modify request and partial fill race in a fake live adapter | Record fill and modification result independently; never assume modify won |
+| AT-502 | Stream disconnect occurs, followed by snapshot without replay cursor | Resync current state while event-history continuity across gap remains UNKNOWN |
+| AT-503 | Scheduler checkpoint is taken between partial fill and remaining fill | Restart restores order residual, portfolio and event offset consistently; no lost or duplicated fill |
+| AT-504 | Strategy memory is restored but order/portfolio checkpoint is from a different event offset | Reject checkpoint as inconsistent; do not resume strategy on mismatched state |
+| AT-505 | Paper mode has no broker credentials but paper fill model is available | Run virtual paper simulation; no credential or live capability required |
+| AT-506 | BACKTEST runtime receives a live credential object by configuration error | Fail startup/capability audit; credentials must not be present in backtest runtime |
+| AT-507 | Shadow mode is configured with an order-placement adapter | Reject startup or remove the capability through fail-closed policy; no command can be sent |
+| AT-508 | User switches PAPER to LIVE while virtual orders remain working | Stop transition; close/reconcile or explicitly abandon virtual state in old epoch; never migrate as live orders |
+| AT-509 | User switches LIVE to PAPER while broker orders remain open | Reconcile/carry live orders only in live account epoch; paper account starts separately |
+| AT-510 | Simulated backtest settlement event is applied while a live account has a real open position | Keep accounts and event streams separate; actual live position is unchanged |
+| AT-511 | A mandatory risk gate is UNKNOWN in the common fixture | All risk-increasing mode runs block or return explicit UNKNOWN; no mode-specific bypass |
+| AT-512 | A risk input is simulated in BACKTEST but unavailable in PAPER | Apply explicit paper evidence policy; return UNKNOWN/not-simulated if no valid paper source exists |
+| AT-513 | Backtest and paper use different fill models but the same lot/tick/risk policy | Preserve shared domain invariants and classify only declared execution differences |
+| AT-514 | Paper fee schedule differs from actual broker contract note | Preserve virtual fee model and actual fee evidence separately; report MODEL/EXTERNAL_STATE_VARIANCE |
+| AT-515 | Duplicate intent is replayed after an event-log checkpoint | Idempotency prevents a second command/economic side effect |
+| AT-516 | Reordering two events that have no defined causal dependency | Deterministic domain result remains equivalent; otherwise mark ordering dependency explicitly |
+| AT-517 | Two same-timestamp events have recorded different receive sequence | Replay in recorded sequence; do not sort by timestamp alone |
+| AT-518 | Generated property test creates fills whose cumulative quantity exceeds request | Invariant fails and retains seed/minimized counterexample; run is NON_CONFORMANT |
+| AT-519 | Generated property test replays duplicate fees or position adjustments | Accounting invariant detects duplicated economic effect and fails the scenario |
+| AT-520 | Conformance report has 99.9% pass but one hard paper-to-live route violation | Overall result NON_CONFORMANT; aggregate pass percentage cannot override the hard failure |
+
+PX-025 now contains **293 normative requirements (R-001–R-293) and 520 proposed acceptance scenarios (AT-001–AT-520)**. These are proposed tests only; no conformance harness, engine, broker, paper account, live account or test was executed.
+
+### Conformance release boundary
+
+- Common domain invariants are compared across modes; fill prices, timing and external execution evidence are compared against mode-specific contracts.
+- A parity percentage cannot override a hard failure or UNKNOWN in mode isolation, risk, idempotency, order lifecycle or accounting.
+- Fake adapters must never fall back to real broker, feed, account or exchange endpoints.
+- Captured live events replayed through a fake adapter remain synthetic replay evidence, not fresh broker trades.
+- All test cases in this amendment are proposed; no harness or mode was executed.
