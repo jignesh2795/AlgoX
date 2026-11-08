@@ -471,3 +471,30 @@ PX-025 now contains **101 normative requirements and 180 proposed acceptance sce
 The NCL/CMPT/76459 reference came from a secondary circular index; the official archive PDF and Annexure I security-level table were not inspected. Exact 2025/122 PDF thresholds were also not retrieved. NSE's 19 Nov 2025 position-limits page lists a 60% OI alert every 10 minutes, but whether the alert was migrated to FutEq is not established. The research records the effective circular references and refuses to substitute stale 2025 values. A live control must fail closed when its current effective limit/delta/ban data is unavailable.
 
 No broker/member portal, broker/clearing endpoint, sandbox, order, code implementation, paid service, PR or merge to `main` was used.
+
+
+## 21. Order admission, exposure classification and independent risk gates (2026-11-08)
+
+PX-2026-033 synthesizes PX-024 through PX-032 and the ALG-ARCH-001 provenance baseline into a proposed order-admission policy.
+
+### Core conclusion
+
+Order admission is the conjunction of independent mandatory gates. Margin sufficiency does not override a position limit; position-limit headroom does not prove upfront collection; a broker acknowledgement does not prove exchange receipt or execution; and an unresolved command may already have created exposure.
+
+The projected portfolio must include current positions, unique trades, working-order residuals, partial fills, sliced/compound children and unresolved submissions. “Sell”, “close” or “reduce-only” labels do not prove an action is risk-reducing; classify the projected exposure vector under the effective contract, delta, position-limit, margin and settlement rules.
+
+### Proposed gate composition
+
+PX-033 proposes 11 gates covering identity/contract eligibility, command recovery, projected exposure, MWPL ban, entity limits, index intraday controls, margin/collection, expiry/settlement, provider validation and evidence freshness. A gate-level FAIL or required UNKNOWN blocks risk-increasing admission. Advisory warnings remain separate from hard restrictions.
+
+PLACE, OFFSET, MODIFY, CANCEL, REPLACE and compound/sliced actions have distinct state/evidence rules. Admission approval is time-bounded and must be revalidated before dispatch if relevant inputs change.
+
+### Requirements and tests
+
+PX-025 now contains **118 normative requirements and 220 proposed acceptance scenarios**:
+- R-102–R-118 cover independent gates, projected exposure, action classification, fail-closed UNKNOWN, command lifecycle, ban reduction proof, cross-member aggregation, actual margin collection, hedge invalidation, expiry/settlement admission, child-order gates, provider validation, advisory vs hard block, immutable decision snapshots, per-gate trace, distinct dispatch/ack/execution evidence and non-bypassable regulatory restrictions.
+- AT-181–AT-220 cover gate conjunction, position/margin independence, unknown data, reduction labels, working orders, lost acknowledgements, cancel/modify/replace races, ban reductions, cross-member data, stale basket approval, physical delivery, compound orders, broker acknowledgement vs execution, warnings vs hard limits and override attempts.
+
+These scenarios are proposed for a future deterministic fake-provider/fake-clearing harness and have not been run.
+
+No order engine code, broker integration, sandbox/production request, live order, paid service, PR or merge to `main` was used.
