@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **132 normative requirements (R-001–R-132) and 250 proposed acceptance scenarios (AT-001–AT-250)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **147 normative requirements (R-001–R-147) and 280 proposed acceptance scenarios (AT-001–AT-280)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1065,3 +1065,83 @@ PX-025 now contains **132 normative requirements (R-001–R-132) and 250 propose
 ### Data limitations
 
 The daily NSE `contract.gz` and `NSE_FO_contract_ddmmyyyy.csv.gz` file for 8 November 2026 was not downloaded or parsed. The June 2026 quantity-freeze circular is a dated source, not a substitute for the current daily file. Upstox's “units in multiples of tick size” quantity wording is dimensionally inconsistent and must not be used as a conversion rule. Dhan slicing response details remain incomplete in the reviewed public order page.
+
+## 21. NSE contract-file ingestion, schema variants and integrity (2026-11-08)
+
+PX-2026-035 audits NSE MII contract-file variants, dated F&O contract CSVs, quantity-freeze/market-lot report chronology and contract Admission Type. See [PX-2026-035 — NSE contract-file ingestion, schema variants and integrity](PX-2026-035-nse-contract-file-ingestion-schema-variants-and-integrity.md).
+
+### Additional normative requirements
+
+**R-133 — Artifact family and variant are explicit.** The loader MUST classify each source artifact by exact family, variant, exchange, segment and distribution channel. NSE-exclusive MII contract files, NSE/BSE-interoperability variants, dated FO contract CSVs, quantity-freeze reports and market-lot reports MUST NOT be treated as interchangeable inputs.
+
+**R-134 — Effective date and publication time are separate.** Every artifact and row MUST preserve publication/dissemination time, capture time and effective date/time independently. The newest download MUST NOT automatically be assumed effective for the current trading session.
+
+**R-135 — Schema profile is pinned to artifact variant.** The parser MUST bind a schema/profile and field map to the exact artifact variant, version, circular and segment. A field offset from `contract.gz` MUST NOT be reused for `NSE_FO_contract_ddmmyyyy.csv.gz` or another MII/report variant without source evidence.
+
+**R-136 — Raw artifact bytes and provenance are immutable.** The system MUST retain the original compressed file bytes, source URL/channel, file size, hash, download time, circular reference, parser version and validation report. Parsed records MUST be traceable to exact source bytes and row/record positions.
+
+**R-137 — Gzip and complete-file validation is mandatory.** An artifact MUST pass container/decompression validation through EOF, encoding, record framing and file completeness checks before parsing. Truncated, corrupt, partial or encoding-invalid files MUST be rejected and MUST NOT be promoted as a partial current contract master.
+
+**R-138 — Contract identity keys are unique within their effective scope.** The loader MUST define and validate the unique contract key for the artifact's exchange/segment/venue/date, including underlying/security identity, expiry, instrument family, strike, option type and applicable series fields. Duplicate keys, ambiguous aliases or collisions MUST fail validation rather than select an arbitrary row.
+
+**R-139 — Multiple contract-file variants remain separately scoped.** NSE-exclusive and NSE/BSE-interoperability MII contract variants MUST retain their own file identity and schema profile. The order validator MUST select the correct variant for the requested venue and member capability, not union all rows into an unqualified universe.
+
+**R-140 — Admission Type is parsed by variant-specific mapping.** The Admission Type field MUST use the field number/code mapping for the exact file variant and circular. Unknown codes, shifted fields or a venue mismatch MUST return UNKNOWN/unsupported and block dispatch; the loader MUST NOT reuse the field 13 mapping for the field 30 file or vice versa.
+
+**R-141 — Lot size, quantity unit and freeze quantity remain distinct.** The loader MUST store market lot/multiplier, raw quantity unit, broker payload unit and quantity-freeze value separately, each with source/version/effective date. A separate lot/freeze report MUST only be used when the applicable circular/report schedule establishes its coverage and precedence.
+
+**R-142 — Separate quantity-freeze and lot report lifecycle is date-versioned.** The loader MUST preserve the circular history for `Qtyfreeze.csv` and `fo_mktlots.csv`, including discontinuation/reintroduction/effective date. Presence or absence of a standalone report MUST NOT be interpreted using an outdated circular; it MUST be resolved against the current report catalogue and contract-file instructions.
+
+**R-143 — Contract snapshots are promoted atomically.** A candidate contract-data snapshot MUST remain invisible to order admission until all required artifacts and validations for the target session/effective date have passed. No partial current file may be combined with rows from a previous effective-date snapshot to create a green/complete result.
+
+**R-144 — Related artifact conflicts fail closed.** A conflict between the contract master, date-specific freeze/lot report, corporate-action adjustment or circular-announced limit MUST be resolved against an explicit effective-source hierarchy. If unresolved, affected contract fields and order-admission gates MUST remain UNKNOWN; no silent max/min/newest-file fallback is allowed.
+
+**R-145 — Expiry, status and session coverage are complete.** Every candidate contract row MUST be checked against the applicable expiry, trading status, suspension/listing/admission and session calendar. A stale contract row remaining in an old file MUST NOT make an expired or suspended instrument tradable.
+
+**R-146 — Venue admission and alternative trading route are enforced.** A contract's Admission Type and applicable circular MUST be checked against the requested exchange/venue and member/broker route. BSE-exclusive or otherwise restricted contracts MUST NOT be submitted through a disallowed venue; unsupported alternative-trading-venue handling MUST return UNKNOWN/unsupported.
+
+**R-147 — Promotion and invalidation are auditable.** Each promoted or rejected snapshot MUST retain source file hashes, circular/schema versions, exact validation results, rejected rows/reasons, promotion actor/process and effective interval. A later correction, circular or contract change MUST invalidate the affected snapshot/approval and trigger re-ingestion before order admission.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-251 | Loader receives an NSE-exclusive MII contract file | Classify the exact file variant and apply its own schema profile |
+| AT-252 | Loader receives the NSE/BSE-interoperability contract-file variant | Keep it separate from NSE-exclusive file; do not union variants without route rules |
+| AT-253 | Dated `NSE_FO_contract_ddmmyyyy.csv.gz` is received with a schema profile for another file | Reject schema/variant mismatch; do not parse with wrong field map |
+| AT-254 | Contract.gz Admission Type field is at field 13 | Parse using the contract.gz mapping and preserve raw value/source position |
+| AT-255 | Dated FO CSV Admission Type field is at field 30 | Parse using that file's mapping; do not reuse field 13 offset |
+| AT-256 | Admission Type contains an unknown value or field shifts unexpectedly | Reject/UNKNOWN; do not infer NSE/BSE venue from symbol alone |
+| AT-257 | BSE-exclusive contract is requested through a venue/route not permitted by its Admission Type | Block order validation and retain the exact admission/routing reason |
+| AT-258 | BSE-exclusive contract requires an alternative trading venue that the adapter cannot select | UNKNOWN/unsupported; no fallback to the default exchange route |
+| AT-259 | Contract file contains two rows with same effective unique contract key but differing lot/expiry/status | Reject duplicate-key conflict; do not choose first/last row |
+| AT-260 | Contract file is for a future effective date but is published today | Keep it staged for its future effective date; do not apply early |
+| AT-261 | Contract file was published earlier but is downloaded after the effective date begins | Preserve publication/capture/effective times; verify whether the file is still authoritative for the session |
+| AT-262 | Gzip stream is truncated before EOF | Reject artifact; do not promote parsed prefix rows |
+| AT-263 | File hash changes between download and staged parse | Integrity failure; quarantine artifact and reacquire |
+| AT-264 | One required segment/variant file is missing from a multi-file contract set | Candidate snapshot incomplete; no atomic promotion |
+| AT-265 | A row has blank or malformed underlying/security/expiry/strike/option-type identity | Reject row or whole snapshot according to the pinned schema completeness policy; no fuzzy identity |
+| AT-266 | Expired contract row is present alongside active contract rows | Preserve historical row for audit but mark expired/non-tradable for current session |
+| AT-267 | Current contract file is partial while previous-day file is complete | Do not merge them into one current snapshot; return UNKNOWN for affected current contracts |
+| AT-268 | Standalone `Qtyfreeze.csv` is absent after a circular said it was discontinued | Resolve the current circular/file hierarchy; absence alone is not a missing-data failure if the MII contract has the complete required field |
+| AT-269 | Standalone `Qtyfreeze.csv` is present under a later report schedule | Apply only if the applicable circular says it is current and authoritative for the target decision |
+| AT-270 | `fo_mktlots.csv` and contract-file lot values differ | Keep both observations and resolve using effective source/variant instructions; UNKNOWN if no hierarchy |
+| AT-271 | 2026 circular changes index freeze quantity while a cached file retains prior quantity | Invalidate cache and require the effective dated contract file; no hard-coded/cached approval |
+| AT-272 | Index freeze value in the daily file differs from the circular summary | Preserve both and resolve whether the file reflects later effective data; fail closed if the discrepancy is unexplained |
+| AT-273 | Same instrument appears in NSE-exclusive and NSE/BSE variants with different Admission Type/route | Preserve variant scope and validate against requested venue; no automatic cross-variant alias |
+| AT-274 | Parser is upgraded but source bytes/schema version are unchanged | Retain old parser provenance and compare/revalidate new output before promoting the new parser profile |
+| AT-275 | Schema circular shifts a field position but parser continues with previous mapping | Reject schema mismatch; do not silently read the wrong field into Admission Type/lot/freeze |
+| AT-276 | Contract file uses unknown enum for market status or instrument family | Preserve raw code and return UNKNOWN/unsupported; no default active/tradable mapping |
+| AT-277 | Contract row exists but selected broker/provider does not support the required exchange/venue/product | Exchange contract identity PASS is not enough; provider capability gate rejects/UNKNOWN |
+| AT-278 | Contract and freeze/lot artifacts are individually valid but refer to different effective sessions | Do not combine; stage remains incomplete/UNKNOWN |
+| AT-279 | All required artifacts pass schema, hash, identity, status and effective-date validation | Promote one immutable atomic snapshot with complete provenance |
+| AT-280 | A later circular/file correction changes a promoted lot, tick, freeze or Admission Type | Invalidate affected instrument/admission snapshots and require re-ingestion/revalidation before dispatch |
+
+PX-025 now contains **147 normative requirements (R-001–R-147) and 280 proposed acceptance scenarios (AT-001–AT-280)**. These are proposed tests only; no daily 8 November 2026 file or parser was executed.
+
+### Source and schema limitations
+
+- The actual daily 8 November 2026 MII/FO contract files were not downloaded or parsed.
+- The complete current schema and code lists for all variants are not closed by the documents reviewed.
+- The standalone `Qtyfreeze.csv`/`fo_mktlots.csv` lifecycle includes discontinuation and later reintroduction notices; the current report catalogue and route-specific precedence must be verified at integration time.
+- Field-level parser implementation remains deferred; no inferred mapping is to be promoted as authoritative.
