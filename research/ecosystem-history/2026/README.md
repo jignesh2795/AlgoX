@@ -37,3 +37,6 @@ This directory records dated ecosystem findings and their architectural implicat
 - Pin benchmark, harness, environment, model, runtime and evaluator versions when comparing results.
 - Architecture implications are candidate requirements/reference patterns; they are not authorization to implement a new subsystem without a separate decision.
 - Findings that could not be verified from primary project, paper, maintainer or official announcement sources are not promoted to historical facts.
+## Session continuity
+
+- [2026-11-08 AlgoX research session continuity](../../session-continuity/2026-11-08-algox-research-session.md) — consolidated project purpose, research status, benchmark findings, experiment queue, Indian-market execution research, unresolved evidence and next sequence.
