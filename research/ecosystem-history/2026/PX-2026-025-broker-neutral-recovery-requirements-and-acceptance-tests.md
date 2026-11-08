@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **216 normative requirements (R-001–R-216) and 400 proposed acceptance scenarios (AT-001–AT-400)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **235 normative requirements (R-001–R-235) and 430 proposed acceptance scenarios (AT-001–AT-430)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1480,3 +1480,94 @@ PX-025 now contains **216 normative requirements (R-001–R-216) and 400 propose
 - The public press-release archive contains event notices, but its completeness for every index and all historical periods has not been validated.
 - Historical weights, IWF, shares outstanding and divisor-adjustment files require their own dated authoritative sources.
 - The May 2026 methodology is a current snapshot; earlier methodology versions must be retrieved before reconstructing older periods.
+
+
+## 26. Backtest execution realism, liquidity and transaction-cost controls (2026-11-08)
+
+PX-2026-040 reviews NSE impact cost, price bands, derivatives operating ranges/LPP, transaction and statutory charges, cash settlement and short-delivery auction handling. See [PX-2026-040 — Backtest execution realism, liquidity and transaction-cost controls](PX-2026-040-backtest-execution-realism-liquidity-and-transaction-costs.md).
+
+### Additional normative requirements
+
+**R-217 — Execution cost and fixed charges are separate.** The system MUST distinguish spread, order-book impact and price slippage from brokerage, exchange transaction charge, IPFT, SEBI fee, STT, stamp duty, GST, DP/depository, funding and settlement-shortage costs. Impact cost MUST NOT be treated as a fixed statutory fee.
+
+**R-218 — Impact cost is side-, size- and time-specific.** Any impact-cost estimate MUST retain buy/sell side, reference price definition, requested order size, book/volume snapshot time and source, executable levels and average execution price. A single universal impact-cost percentage MUST NOT be treated as accurate across instruments or order sizes.
+
+**R-219 — Execution simulation uses price and quantity availability.** A depth-based fill MUST be limited to the available executable quantity at each relevant price level and the order's price constraint. A quote or LTP alone MUST NOT establish fillable quantity. The model MUST preserve book snapshot time and avoid assuming depth remains available indefinitely.
+
+**R-220 — Candle bars do not prove order-book fills.** A bar-based backtest MUST declare how it handles intrabar path, order arrival, price-time priority and liquidity. A candle high/low touching an order price MUST NOT by itself be treated as a guaranteed fill or full fill.
+
+**R-221 — Partial fills and residual orders are first-class.** The simulated order lifecycle MUST preserve each partial fill, remaining quantity, working lifetime, rejection, cancellation, modification and expiry. A strategy signal MUST NOT cause the engine to assume all requested quantity traded.
+
+**R-222 — Volume participation is an explicit model parameter.** A bar-volume participation cap MUST be configured, versioned and reported as a backtest assumption. It MUST NOT be represented as an exchange-mandated percentage or inferred automatically from the signal size. Historical coverage and zero-volume cases MUST be respected.
+
+**R-223 — Exchange price bands and operating ranges are admission constraints.** The execution model MUST retain the effective security price band or derivatives operating range for the contract/date/session. An order outside the effective permitted range MUST be rejected/unfilled rather than clamped silently to the nearest band.
+
+**R-224 — LPP is a distinct dynamic F&O validation layer.** For applicable F&O limit-price orders, the model MUST treat LPP as an additional validation above operating price range and use the effective time-specific LPP parameters/reference. The LPP parameter values MUST be versioned and MUST NOT be hard-coded from an old FAQ table.
+
+**R-225 — Stop-limit LPP is checked at trigger release.** A simulated SL-Limit order MUST be revalidated against prevailing LPP when its trigger activates and it is released to the regular book. A rejection MUST remain an unfilled/rejected order; it MUST NOT be converted into an execution at a clamped price.
+
+**R-226 — Rejected modifications preserve the original order state.** Where LPP or another exchange validation rejects a modification, the model MUST preserve the pre-modification order state if the exchange rule says the original order remains in the book. It MUST NOT assume that a rejected modify cancelled the original order.
+
+**R-227 — Passive orders survive range flex under source rules.** When the applicable LPP process flexes its range, the engine MUST preserve existing passive orders and their price-time priority where the exchange rule says they remain. It MUST NOT silently cancel/reprice them due solely to LPP range flex.
+
+**R-228 — Exchange charges and IPFT are effective-dated and segment-specific.** The cost model MUST preserve exchange transaction charge and IPFT components separately with their segment, rate base, side and effective date. It MUST apply the 1 March 2026 NSE/FA/73061 schedule for applicable later trades and historical rates before that date, without double-counting the combined outflow and its components.
+
+**R-229 — Statutory charges use the correct taxable base and liable side.** STT and stamp duty MUST be computed from the applicable dated statutory schedule, product/event type, taxable base and liable side. Option premium sale, option exercise intrinsic value, futures sale, equity delivery and non-delivery MUST NOT be treated as one generic turnover charge.
+
+**R-230 — SEBI turnover fee and GST remain separate components.** The model MUST preserve SEBI turnover fee and applicable GST as separate charge components with their respective dated base/rules. GST MUST NOT be applied indiscriminately to all taxes/levies or double-counted in an exchange/broker total.
+
+**R-231 — Brokerage and account-level charges are tariff-versioned.** Brokerage, DP/depository charges, other broker fees, margin funding and account-specific rates MUST be represented by broker/account/product tariff version and effective date. A generic cost scenario MUST be labelled as such and MUST NOT be described as an actual client invoice.
+
+**R-232 — Cost calculations use exact decimal and component-level rounding.** Fees and statutory charges MUST retain raw taxable base, rate, currency, calculation precision and applicable component-level rounding rule. The engine MUST NOT round a combined percentage once if the actual tariff requires separate rounding by order, fill, side, segment or charge component.
+
+**R-233 — Settlement calendar and T+0 eligibility are modelled explicitly.** Cash-equity backtests MUST use the effective T+1/T+0 eligible-security list and settlement calendar, including holidays, pay-in/payout cutoffs and T+0 time restrictions. T+0 MUST NOT be assumed for all securities or sessions.
+
+**R-234 — Short-delivery auction/close-out is a conditional tail event.** The engine MUST distinguish normal successful delivery from securities shortage, valuation debit, buy-in auction and failed-auction close-out. It MUST apply the dated exchange close-out/auction rule only when the simulated settlement scenario creates the relevant shortage; it MUST NOT apply auction cost to every cash-market sale.
+
+**R-235 — Gross/net P&L and no-double-count cost provenance are mandatory.** Every backtest MUST report gross P&L and net P&L with component cost totals, execution-price assumptions, cost-model version, rates/tariffs and settlement events. A cost already embedded in fill price MUST NOT be charged a second time as an explicit fee.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-401 | Same size buy and sell consume asymmetric bid/ask depth | Calculate side-specific impact and fill price; preserve midpoint, book levels and size |
+| AT-402 | A marketable buy exceeds the quantity at best ask and consumes deeper levels | Produce depth-weighted partial/multi-level fill; do not fill entire quantity at best ask |
+| AT-403 | Requested quantity exceeds all visible executable depth | Fill only supported quantity and keep residual unfilled; no fabricated liquidity |
+| AT-404 | LTP is present but bid/ask depth is missing | Do not treat LTP as executable quantity; use explicit lower-fidelity model or UNKNOWN |
+| AT-405 | Order size grows while the same book snapshot is held constant | Model greater depth consumption/impact; do not reuse the same fixed slippage percentage |
+| AT-406 | Order book changes between signal and simulated arrival | Use the arrival-time observation if available; otherwise record timing assumption/uncertainty |
+| AT-407 | Bar high touches a buy limit but no trade/queue evidence exists | Do not guarantee fill from high alone; apply declared conservative bar-fill policy |
+| AT-408 | Strategy signal is produced at the end of a bar | Do not fill at that same closing price without an explicit valid closing-auction/arrival model; default to next eligible observation |
+| AT-409 | Stop-limit triggers after a gap but the limit price is no longer marketable | Record triggered-but-unfilled order; do not force execution at trigger |
+| AT-410 | Marketable order has only partial fill before session close | Preserve partial execution and residual expiry/cancel; P&L uses filled quantity only |
+| AT-411 | Configured participation cap is exceeded by candidate order | Limit simulated execution to the configured participation quantity and retain residual |
+| AT-412 | Bar volume is zero or missing | No volume-based fill; return unfilled/UNKNOWN according to source completeness |
+| AT-413 | F&O limit order price is inside OPR but outside current LPP | Reject order on LPP; do not assume OPR PASS implies exchange acceptance |
+| AT-414 | SL-Limit order triggers when current LPP has moved | Validate at trigger-release time; reject if outside prevailing range |
+| AT-415 | LPP rejects an order modification | Retain the original order in its prior state; do not mark it cancelled |
+| AT-416 | LPP range flexes while passive orders are resting | Keep existing orders and their time priority if the effective rule retains them |
+| AT-417 | Price-range validation changes during the session | Use time-effective range for each order attempt; do not backfill current range to earlier time |
+| AT-418 | Cash equity has an effective 2%, 5%, 10% or 20% band and order price exceeds it | Reject/unfilled using that security's dated band |
+| AT-419 | F&O future uses operating range and option uses a daily delta-based range | Use product-specific range; do not apply the cash security price band to the derivative contract |
+| AT-420 | Exchange transaction charges change on 1 March 2026 | Apply the effective NSE/FA/73061 segment schedule from its start date and prior schedule before it |
+| AT-421 | Equity option transaction charges are calculated on premium turnover | Use traded premium value rather than option notional value as the transaction-charge base |
+| AT-422 | STT on an equity option sale and option exercise occurs in separate events | Apply the relevant dated rates and bases to seller premium sale and purchaser intrinsic-value exercise respectively |
+| AT-423 | Equity futures sale occurs after the 1 April 2026 STT revision | Use the effective seller-side futures STT schedule; do not apply the option premium base |
+| AT-424 | Stamp duty is assessed for delivery, non-delivery, futures and options | Apply correct buyer-side product/event base and separate it from STT |
+| AT-425 | SEBI turnover fee is charged on both sides of an applicable transaction | Preserve the correct rate/base independently from NSE transaction/IPFT charge |
+| AT-426 | Broker tariff or DP charge changes across dates/account plans | Select dated broker/account tariff; do not use current account tariff for historical periods |
+| AT-427 | Brokerage, exchange charges, STT, stamp duty and GST are combined into one number too early | Preserve each component, taxable base and rounding; prevent double tax/cost |
+| AT-428 | Cash equity settles T+1 across an intervening holiday | Calculate working-day settlement date and retain separate trade/settlement date |
+| AT-429 | Eligible T+0 security is sold after the T+0 early-pay-in cutoff or on settlement/bank holiday | Do not assume T+0 settlement; apply effective cutoff/eligibility and mark obligation accordingly |
+| AT-430 | Cash-market sale results in a short securities delivery and failed buy-in auction | Record valuation debit and applicable close-out tail cost; do not charge auction cost to ordinary successfully delivered trades |
+
+PX-025 now contains **235 normative requirements (R-001–R-235) and 430 proposed acceptance scenarios (AT-001–AT-430)**. These are proposed tests only; no historical depth, fee file, order book or backtest was run.
+
+### Source and calibration limitations
+
+- No historical depth/quote dataset was acquired; the impact-cost model cannot claim historical depth calibration.
+- NSE LPP FAQ numeric parameters are changeable by circular/broadcast; operational use must load date-effective values.
+- NSE/FA/73061 transaction charges are exchange/member-level rates, not a complete client invoice.
+- Broker brokerage/DP/funding tariffs must be pinned by provider/account/effective date.
+- STT, stamp duty, SEBI fee and GST require date-effective tax rules and exact taxable bases.
+- T+0 eligibility is security/date-specific and must come from current effective notices.
