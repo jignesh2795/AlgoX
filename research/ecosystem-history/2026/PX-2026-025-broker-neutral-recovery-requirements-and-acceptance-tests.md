@@ -551,10 +551,45 @@ PX-2026-027 reviewed current official provider documentation for WebSocket order
 | AT-048 | Synthetic trade correction/bust carries an explicit authoritative link | Preserve original and correction; derive net execution only under documented correction rule |
 | AT-049 | Trade endpoints expose executions but no correction/bust contract is documented | Correction capability remains UNKNOWN; do not delete/rewrite original trade or claim finality |
 
-The original AT-001 through AT-043 remain in force. The requirements baseline now contains **36 requirements and 49 proposed acceptance scenarios**. The scenarios are not executed tests.
+The original AT-001 through AT-043 remain in force. The requirements baseline now contains **48 normative requirements and 75 proposed acceptance scenarios**. The scenarios are not executed tests.
 
 ### Scope clarification
 
 Kite checksums can authenticate a received HTTP postback but do not establish message completeness. Upstox `order_request_id` and `order_ref_id` are described as request-count/order metadata, not stream cursors. Dhan order IDs and last-updated timestamps identify an order/update but are not documented as a sequence or replay cursor. See PX-027 for source details and limits.
 
 No provider stream was connected and no broker endpoint was called. This amendment is requirements documentation only.
+
+
+## 14. Portfolio, cash-ledger, charges and contract-note amendment (2026-11-08)
+
+PX-2026-028 reviewed the official broker portfolio, statement, cash-ledger, charges and funds/margin documentation and the NSE investor advisory. See [PX-2026-028 — Portfolio, cash-ledger, charge and contract-note reconciliation](PX-2026-028-portfolio-cash-ledger-charge-and-contract-note-reconciliation.md).
+
+### Additional normative requirements
+
+- **R-037:** keep orders, trades, positions, demat holdings, cash ledger, charges/contract notes, funds/margin and independent evidence as distinct but linkable layers.
+- **R-038:** scope accounting records by broker/account/exchange/segment/stable instrument/product and trade/settlement dates; symbols alone are insufficient.
+- **R-039:** reconcile position roll-forward from opening quantity plus signed executions plus documented non-trade adjustments; never create balancing plugs.
+- **R-040:** preserve settled/DP, T+1, available, used/authorised and collateral/pledged holding buckets independently.
+- **R-041:** reconcile cash from signed posted ledger entries with voucher identity and running balance; pending/blocked amounts are not posted cash.
+- **R-042:** broker-issued contract notes/statements are evidence for posted charges; virtual/estimated calculators are not substitutes.
+- **R-043:** preserve date/segment/side-specific charge components and tariff version; aggregate charges cannot be allocated to individual trades without an authoritative rule.
+- **R-044:** available-to-trade, blocked/used margin, collateral, receivables, blocked payouts, ledger cash and withdrawable cash remain distinct.
+- **R-045:** keep realised/unrealised/day/carry-forward/MTM/settlement P&L and cash movements separate.
+- **R-046:** historical report pagination, period, segment, financial-year and retention completeness are mandatory.
+- **R-047:** cross-check holdings/settlement against depository and exchange/bank evidence where available; preserve settlement dates and buckets.
+- **R-048:** preserve raw numeric representations and source units; derived money uses exact decimal arithmetic and explicit rounding.
+
+### Additional acceptance scenarios
+
+AT-050 through AT-075 now cover position roll-forward, unsettled/overnight holdings, Dhan ledger vouchers and charges, payment pending state, funds snapshots, Kite virtual contract note, Upstox aggregate charges, issued note variances/missing notes, nullable trade IDs, pagination gaps, settlement boundaries, corporate actions/expiry/pledges, cash running-balance mismatch, duplicate source appearances, exact-decimal parsing, unlike P&L/funds scopes, depository conflicts, non-atomic capture times, dated charge schedules and downstream reconciliation of late-recovered fills.
+
+PX-025 now contains **48 normative requirements and 75 proposed acceptance scenarios** (AT-001 through AT-075). All remain proposed; none was executed in this research work.
+
+### Scope clarification
+
+- Kite distinguishes net/day positions and holdings, and its `/charges/orders` page calls the output a **Virtual contract note**.
+- Upstox separates historical trades, trade-wise realised P&L, aggregate segment/FY charges and pay-in/payout records.
+- Dhan exposes a voucher-based cash ledger, paginated historical trades with exchangeTradeId and charge fields, holdings quantity buckets, positions and a separate fund-limit snapshot.
+- NSE's investor advisory asks investors to receive contract notes within 24 hours and account statements at least quarterly, and to verify demat/exchange balance evidence.
+
+No account, broker endpoint, sandbox, real order, code implementation or paid service was used. This amendment is requirements documentation only.
