@@ -27,6 +27,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-019](PX-2026-019-coding-workflows-and-governed-software-factory.md) | DeepSeek Super-Agent, GitHub/GitLab workflows and Stack Internal |
 | [PX-2026-020](PX-2026-020-ai-toolchain-supply-chain-incidents.md) | Tensorlake and LiteLLM supply-chain incidents |
 | [PX-2026-021](PX-2026-021-open-weight-model-capabilities-october-2026.md) | Holo4, Beam and Mistral Large 4 |
+| [PX-2026-022](PX-2026-022-indian-market-fill-realism-and-market-impact.md) | Indian-market fill realism, queue reconstruction and market impact |
 
 ## Scope and evidence policy
 
