@@ -45,6 +45,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-037](PX-2026-037-market-data-time-semantics-feed-integrity-and-contract-continuity.md) | Market-data time semantics, feed integrity and historical contract continuity |
 | [PX-2026-038](PX-2026-038-historical-price-integrity-corporate-actions-and-backtest-reproducibility.md) | Historical price integrity, corporate actions and backtest reproducibility |
 | [PX-2026-039](PX-2026-039-point-in-time-universe-and-index-membership-reconstruction.md) | Point-in-time security universe and index membership reconstruction |
+| [PX-2026-040](PX-2026-040-backtest-execution-realism-liquidity-and-transaction-costs.md) | Backtest execution realism, liquidity and transaction-cost controls |
 
 ## Scope and evidence policy
 
