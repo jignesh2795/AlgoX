@@ -522,3 +522,27 @@ PX-025 now contains **132 normative requirements and 250 proposed acceptance sce
 The current daily contract master and provider schema gaps remain explicit; no parser, adapter or test implementation was performed.
 
 No broker/exchange API, account, sandbox, production order, code change, paid service, PR or merge to `main` was used.
+
+
+## 23. NSE contract-file ingestion, schema variants and integrity (2026-11-08)
+
+PX-2026-035 audits NSE MII contract-file variants, dated FO contract CSVs, separate quantity-freeze/market-lot report chronology and Admission Type mappings.
+
+### Findings
+
+- NSE uses multiple contract-data variants, including NSE-exclusive MII contract files and NSE/BSE interoperability-related variants. They must remain separately scoped.
+- NSE/FAOP/74469 (29 May 2026) directs members to load updated `contract.gz` and `NSE_FO_contract_ddmmyyyy.csv.gz` files for revised index freeze limits effective 1 June 2026.
+- The 2024 circular history records discontinuation of separate quantity-freeze/market-lot report distribution where the MII file contains the data, followed by a later circular re-announcing `Qtyfreeze.csv` and `fo_mktlots.csv` from 9 December 2024 EOD. The current source/report precedence must be verified at integration time.
+- NSE/FAOP/73629 (April 2026) identifies Admission Type in different positions: field 13 for `contract.gz` and field 30 for the dated FO CSV. Field offsets must not be reused between schema variants; BSE-exclusive routing/admission remains a first-class eligibility check.
+- Publication time, download time and effective time are separate. Raw bytes, hashes, source circular, parser version, row-level provenance, schema and completeness must be retained.
+- The 8 November 2026 daily files and complete current field schemas were not retrieved or inspected; no parser was implemented or claimed as validated.
+
+### Requirements and acceptance tests
+
+PX-025 now contains **147 normative requirements and 280 proposed acceptance scenarios**:
+- R-133–R-147 cover file variant, publication/effective time, schema profile, immutable raw artifacts, gzip completeness, unique contract keys, variant scope, Admission Type mapping, lot/unit/freeze distinctions, auxiliary report lifecycle, atomic promotion, cross-file conflict, status/expiry, venue routing and auditable invalidation.
+- AT-251–AT-280 cover contract variants, field mappings, unknown Admission Type, route mismatch, duplicate keys, future-effective files, gzip truncation/hash change, missing artifacts, malformed identity, expired rows, stale/partial data, standalone freeze/lot report chronology, freeze discrepancies, parser upgrades, schema shifts, unknown enums and revalidation after correction.
+
+All are proposed tests; no file parser or exchange integration was run.
+
+No exchange/member portal access, broker/API call, sandbox, order, code change, paid service, PR or merge to `main` was used.
