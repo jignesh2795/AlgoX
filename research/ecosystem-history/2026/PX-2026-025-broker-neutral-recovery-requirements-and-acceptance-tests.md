@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **88 normative requirements (R-001–R-088) and 150 proposed acceptance scenarios (AT-001–AT-150)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **101 normative requirements (R-001–R-101) and 180 proposed acceptance scenarios (AT-001–AT-180)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -834,3 +834,72 @@ PX-025 now contains **88 normative requirements (R-001–R-088) and 150 proposed
 ### UDiFF inspection limitation
 
 The official UDiFF catalogue and its report-family/change history were reviewed. The linked Annexure B XLSX workbook could not be parsed by the research connector, and the related ZIP downloads were unavailable. Therefore the field-level schema, code lists and actual sample rows remain uninspected. No field-level parser contract is claimed.
+
+## 18. Position limits, MWPL ban period and intraday index risk monitoring (2026-11-08)
+
+PX-2026-032 adds the current FutEq-based single-stock MWPL/ban process, entity position limits, index intraday snapshots and expiry-day ASD. See [PX-2026-032 — Position limits, MWPL ban period and intraday risk monitoring](PX-2026-032-position-limits-mwpl-ban-period-and-intraday-risk-monitoring.md).
+
+### Additional normative requirements
+
+**R-089 — Position-limit sources are effective-dated and versioned.** Every position-limit decision MUST retain the exchange/segment, underlying/security, entity category, member/client scope, applicable MWPL, individual/entity cap, source circular/annexure, effective period, retrieved file/hash and parameter version. A historical or stale HTML table MUST NOT be treated as the current limit schedule.
+
+**R-090 — Client limits aggregate across relevant trading members.** Where the applicable rule defines a client limit across different members, the calculation MUST aggregate all relevant positions for the same client/entity identity across those members and the applicable exchange/clearing scope. A broker-local account subtotal MUST NOT be represented as the full entity exposure. If client identity mapping or cross-member data is incomplete, the total is UNKNOWN.
+
+**R-091 — FutEq uses contract-specific delta evidence.** The system MUST preserve raw contracts/open positions and compute/ingest FutEq using the applicable contract delta factor for symbol, expiry, strike, option type and timestamp. The delta source file/version and parameter snapshot MUST be retained. Raw OI, notional OI and FutEq OI MUST remain distinct measures.
+
+**R-092 — MWPL calculation is quarterly, source-based and corporate-action adjusted.** For the rule introduced by SEBI 2025/79, the MWPL calculation MUST use the lower of 15% free float and 65 times market-wide ADDV in quantity, subject to the 10% free-float floor, and the preceding three-month ADDV window. It MUST preserve the calculation inputs, reference period and quarterly effective date. Applicable corporate-action factors MUST be applied only from the effective source; no stale monthly limit may be carried forward.
+
+**R-093 — MWPL ban activation and resumption are cross-exchange EOD conditions.** Under the current FutEq framework, the ban MUST be activated only after the EOD market-wide FutEq OI for the stock exceeds 95% of the applicable MWPL, with the ban effective from the next trading day. Normal trading MUST remain restricted until combined FutEq OI across exchanges is 80% or below MWPL. An intraday alert MUST NOT be converted into next-day ban status without the prescribed EOD test.
+
+**R-094 — Ban-period Day 1 baseline is immutable.** The system MUST preserve the entity's Day 1 baseline positions when a security enters ban and the exact delta snapshot used to create the base FutEq value. Subsequent daily comparisons MUST use the source-prescribed position and delta times (including the specified 2 PM snapshot) and must be reproducible from raw position and delta files.
+
+**R-095 — Passive delta movement and expiry roll-off are not fabricated as active increases.** The ban reconciler MUST distinguish actual position changes from FutEq changes caused only by a delta-factor movement. It MUST apply the official Day 1/current-day comparison and sign rule. An expiry-related passive change that the applicable exchange rule excludes MUST NOT be penalized as an active increase. The system MUST retain enough evidence to show why a change was active or passive.
+
+**R-096 — Entity-level stock limits use the latest applicable category and security schedule.** The implementation MUST distinguish client/NRI/scheme, TM combined, TM proprietary, FPI Category I/II and Mutual Fund scopes. It MUST load the latest applicable per-security MWPL and entity cap for the effective period (including the identified 1 October 2026 schedule once available). It MUST NOT hard-code category percentages from the September 2025 schedule as current October 2026 values without verifying the operative Annexure I.
+
+**R-097 — Intraday index monitoring retains every required snapshot.** For equity-index derivatives, the system MUST retain at least four randomly timed snapshots in the prescribed windows, with client/entity identity, raw positions, applicable limit, underlying price, delta/FutEq factor, snapshot time and source/report identity. It MUST NOT assume fixed snapshot times or use a daily bar to reconstruct an actual snapshot.
+
+**R-098 — Index-option expiry ASD is limited to the effective expiry-day framework.** For the applicable index-option expiry-day intraday breach framework effective from 8 December 2025, the system MUST preserve the breach snapshot, cure-period snapshot, EOD comparison, cash/cash-equivalent allocation and ASD calculation. It MUST apply the source-defined 1.5x intraday ASD and one-month block only where applicable. It MUST NOT apply this expiry-day ASD to non-expiry-day intraday alerts.
+
+**R-099 — Existing-limit intraday monitoring and expiry-day ASD are separate rule states.** The system MUST preserve the 2025/41 rule that existing notional-limit intraday breaches were not treated as violations/penalties until further directions, alongside the later 2025/122 and NSE implementation of expiry-day index-option ASD. It MUST apply the effective rule by product, entity, date and expiry status; it MUST NOT generalize either statement to every index intraday or stock MWPL case.
+
+**R-100 — Ban files, delta files and violation files are completeness-gated inputs.** A position-limit decision MUST retain and validate the daily ban-period security list, combined cross-exchange MWPL/OI data, contract delta file, member/entity FutEq files and any applicable violation report. Missing, stale, partial, corrupt or mismatched-date inputs MUST result in UNKNOWN, not a pass or zero exposure.
+
+**R-101 — Position limits, margin and member PRISM controls remain distinct.** The system MUST model position-limit utilization, MWPL ban state, margin requirement/shortfall, client collateral availability and member-level effective-collateral/PRISM utilization as separate risk dimensions. One dimension MUST NOT be inferred from another. Any automated block or warning MUST carry the scope and source rule that authorizes that control.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-151 | Position-limit parameter set is missing, stale or effective date does not cover the trade date | UNKNOWN; no position-limit clearance or invented default |
+| AT-152 | Same client's stock-derivative position is split across two brokers/trading members | Aggregate under the applicable client identity/rule; do not assess each broker account independently |
+| AT-153 | Client identity mapping across trading members is incomplete | Cross-member total remains UNKNOWN; do not assume broker-local exposure is the client total |
+| AT-154 | Option contract delta file is missing for one expiry/strike | FutEq calculation UNKNOWN for affected positions; do not substitute delta 1 or stale delta |
+| AT-155 | Futures and options on the same stock have different delta factors | Compute FutEq with the correct factor per contract and retain raw OI separately |
+| AT-156 | MWPL inputs provide 15% free-float quantity and 65x ADDV quantity | Select the lower, enforce the 10% free-float floor and record the calculation trace |
+| AT-157 | Quarter boundary changes the ADDV reference window and MWPL | Use the rolling preceding three-month period and the new effective date; do not apply monthly/stale limits |
+| AT-158 | Corporate action changes the applicable MWPL from an ex-date | Apply only the published adjustment factor from that date and retain pre/post limits |
+| AT-159 | Market-wide FutEq OI closes at 94.99% of MWPL | Do not activate ban; retain the EOD ratio and source inputs |
+| AT-160 | Market-wide FutEq OI closes above 95% of MWPL | Mark stock for ban beginning the next trading day, not immediately during the current session |
+| AT-161 | NSE-only OI exceeds a warning threshold but cross-exchange FutEq has not reached ban trigger | Preserve the warning and market-wide test separately; do not enter ban solely from the alert |
+| AT-162 | Market-wide FutEq OI falls to 80% or below across exchanges | Resume normal trading only after the applicable source-confirmed EOD condition is met |
+| AT-163 | Market-wide OI remains between 80% and 95% after ban | Keep ban active; do not resume early |
+| AT-164 | Day 1 ban baseline is captured and Day 2 uses new delta factors | Recompute current FutEq using the prescribed 2 PM delta and EOD positions; retain raw positions and comparison values |
+| AT-165 | Day 2 contract delta changes while raw entity positions are unchanged | Classify passive FutEq change according to the official baseline comparison; no false active-increase violation |
+| AT-166 | Position reduction crosses through zero and changes FutEq sign | Apply the source sign rule; do not call it a valid reduction merely because absolute magnitude is lower |
+| AT-167 | Entity increases raw contracts during ban but delta-weighted EOD FutEq remains at/below base without sign change | Apply the effective FutEq rule and source evidence; do not use raw contract count alone to decide |
+| AT-168 | Near-month expiry causes passive open-interest/FutEq movement during ban | Apply the documented expiry-passive treatment; do not levy an active-increase penalty without the triggering evidence |
+| AT-169 | Ban-period trade creates new exposure rather than offsetting an existing position | Flag violation and compute the applicable ban-increase penalty basis |
+| AT-170 | Ban begins next day after EOD 95% trigger | Enforce offset-only trading for the next trade date; do not restrict the trigger day retrospectively |
+| AT-171 | Security returns to normal only after combined all-exchange FutEq reaches 80% | Keep restriction until the cross-exchange condition is met; one exchange's local OI is insufficient |
+| AT-172 | Current entity-limit annexure is the 1 October 2026 NCL/CMPT/76459 schedule | Require the actual applicable annexure/security row; if unavailable, return UNKNOWN instead of using 2025 category table |
+| AT-173 | TM combined proprietary+client, TM proprietary-only and client limits are assessed together | Preserve each limit scope separately; do not substitute TM combined cap for client cap |
+| AT-174 | FPI Category I, FPI Category II subcategories, MF scheme and NRI client have different applicable limits | Apply the correctly classified entity rule and date-specific schedule; ambiguous category remains UNKNOWN |
+| AT-175 | Index-derivative intraday monitoring supplies four random snapshots | Preserve each snapshot and calculate applicable peak/breach state; do not assume snapshots occur at fixed times |
+| AT-176 | Intraday index position snapshot has an underlying price different from EOD close | Use the price/time input prescribed for that snapshot; do not value the intraday exposure with stale close |
+| AT-177 | Intraday breach occurs on a non-expiry day under the 2025/41 / 2025/122 framework | Preserve the intraday observation and applicable surveillance rule; do not apply the expiry-day ASD automatically |
+| AT-178 | Intraday breach occurs on an index-option expiry day after 8 December 2025 | Apply the current expiry-day ASD process, including cure-period/EOD comparison, 1.5x intraday ASD and one-month block where the source conditions are met |
+| AT-179 | Missing delta/ban file or incomplete exchange snapshot set prevents a reliable breach calculation | Position state UNKNOWN; do not clear order or manufacture a pass |
+| AT-180 | Position-limit alert exists while SPAN margin is sufficient; or margin shortfall exists while position limit is within bounds | Preserve the two separate risk dimensions and trigger only the rule-specific control |
+
+PX-025 now contains **101 normative requirements (R-001–R-101) and 180 proposed acceptance scenarios (AT-001–AT-180)**. These are proposed deterministic scenarios, not executed tests.
