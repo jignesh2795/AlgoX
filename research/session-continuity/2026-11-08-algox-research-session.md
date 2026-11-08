@@ -594,3 +594,24 @@ PX-025 now contains **177 normative requirements and 340 proposed acceptance sce
 - AT-311–AT-340 cover Kite/Upstox/Dhan timestamps, packet schemas, market status, LTT-vs-currentTs, transport timeout, stale/no-trade distinctions, clock skew, timestamp units, reconnect gaps, historical backfill, Kite continuous daily scope, Dhan 90-day range and date inclusivity, candle source differences, roll lineage, holidays and cross-provider conflicts.
 
 No live feed, historical API, broker account, code or order was used.
+
+## 26. Historical data coverage, expired contracts and backtest provenance (2026-11-08)
+
+PX-2026-038 compares historical candle and expired-contract coverage for Kite, Upstox and Dhan.
+
+### Key findings
+
+- **Kite:** standard historical candles include minute through daily intervals and optional OI. `continuous=1` applies to expired NFO/MCX futures **daily candles** only; expired contract tokens are not in the live master unless cached.
+- **Upstox V3:** historical intervals include minutes 1–300, hours 1–5, day/week/month; minute/hour data is documented from Jan 2022, day/week/month from Jan 2000, with unit-specific maximum retrieval windows. Separate expired-instrument APIs list expired options/futures and retrieve exact expired-contract candles at 1m/3m/5m/15m/30m/day.
+- **Dhan:** daily history is documented from instrument inception; active-instrument intraday 1/5/15/25/60m covers the last five years, maximum 90 days per call. Its expired-options API is rolling ATM-relative (up to five years, 30 days per call and bounded ATM±strike coverage), not a full fixed-strike archive.
+- Provider date semantics differ: Upstox ranges are inclusive; Dhan's documented toDate is non-inclusive; Kite uses timestamp parameters.
+- Preserve exact contract history, rolling moneyness history and continuous futures as distinct data coverage classes. Raw bars remain immutable; corporate-action-adjusted/continuous series are derived views with lineage.
+- OHLC-only data cannot prove exact intrabar fills, queue position or order-book path. Backtests must state data resolution/fill model and enforce no-lookahead.
+
+### Requirements and acceptance tests
+
+PX-025 now contains **192 normative requirements and 370 proposed acceptance scenarios**:
+- R-178–R-192 cover coverage classification, query date/range semantics, exact expired contract coverage, Upstox expired key resolution, Dhan rolling-moneyness limitation, Kite continuous scope, immutable retrieval manifests, candle boundary/finalization, nullable OI/IV/spot, explicit adjustment lineage, continuous futures construction, no fixed-contract inference from rolling data, chunk completeness, OHLC execution limits and as-of/no-lookahead replay.
+- AT-341–AT-370 cover provider query windows, expired-contract data scope, Dhan ATM shifts/ranges, date inclusivity, missing OI, reversed/duplicate/gapped candles, corporate-action adjustment, roll lineage, lookahead and dataset revision reproducibility.
+
+No historical API call, market data collection or backtest was executed.
