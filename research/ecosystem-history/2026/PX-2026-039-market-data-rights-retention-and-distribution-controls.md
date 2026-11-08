@@ -335,3 +335,8 @@ PX-025 now contains **205 normative requirements (R-001–R-205) and 395 propose
 - Upstox's website/app terms are not treated as a complete API data licence; current API/account terms remain unverified.
 - Dhan public support confirms the separate Data API subscription and fee, but not downstream rights; account API terms remain unverified.
 - Kite's five-year clause is audit-log retention, not raw-market-data retention permission.
+
+
+## Final status
+
+PX-2026-039 market-data rights, retention and distribution requirements documented. PX-025 contains 205 requirements and 395 proposed acceptance scenarios. Public Kite terms and NSE policy provide explicit restrictions; Upstox and Dhan API-feed rights remain unverified without the current account/API agreements. No agreement was accepted, no subscription purchased, no market-data feed or historical API was connected, no data payload was downloaded, no code was implemented and no order was submitted.
