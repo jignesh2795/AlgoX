@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **118 normative requirements (R-001–R-118) and 220 proposed acceptance scenarios (AT-001–AT-220)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **132 normative requirements (R-001–R-132) and 250 proposed acceptance scenarios (AT-001–AT-250)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -990,3 +990,78 @@ PX-2026-033 composes the broker recovery, margin, position limit, MWPL ban, expi
 | AT-220 | Admission decision is ALLOW but broker submit later times out | Preserve ALLOW + SUBMISSION_UNKNOWN as separate facts; reconcile, do not rewrite the decision as a fill or blindly retry |
 
 PX-025 now contains **118 normative requirements (R-001–R-118) and 220 proposed acceptance scenarios (AT-001–AT-220)**. The new scenarios are not executed tests.
+
+## 20. Exchange contract master, freeze limits and broker order validation (2026-11-08)
+
+PX-2026-034 audits NSE contract-master, quantity-freeze, lot/tick/price-range rules and the broker request schemas for Kite, Upstox V3 and DhanHQ v2. See [PX-2026-034 — Exchange contract master, freeze limits and broker order validation](PX-2026-034-exchange-contract-master-freeze-limits-and-broker-order-validation.md).
+
+### Additional normative requirements
+
+**R-119 — Exchange contract master is date-effective and integrity-pinned.** A future adapter MUST identify the exact exchange/segment contract file, trade date, publication/effective date, schema version, file hash, capture time and parser version used for each order-validation decision. Missing, stale, corrupt or mismatched-date contract data MUST produce UNKNOWN, not a fallback to the previous day's row.
+
+**R-120 — Complete derivative identity is required.** A derivative order MUST resolve a stable contract identity including exchange, segment, underlying/security ID, instrument token, trading symbol, contract family, expiry, strike, option type and active/trading status. Symbol-only, token-only or fuzzy matching MUST NOT authorize an order.
+
+**R-121 — Quantity units and market lot are explicitly converted once.** The system MUST keep user lots, exchange units, market lot/multiplier and broker payload quantity as separate typed values. Any conversion MUST identify the effective contract-master version and source unit. The same multiplier MUST NOT be applied twice, and an ambiguous provider quantity unit MUST remain UNKNOWN.
+
+**R-122 — Tick size is contract-specific and exact-decimal.** Each limit/trigger price MUST be validated against the effective contract's tick size using exact decimal arithmetic. Off-tick values MUST be rejected or returned as invalid; the adapter MUST NOT silently round/modify a user's requested price or trigger.
+
+**R-123 — Freeze quantity comes from the effective exchange file.** Freeze quantity MUST be sourced by exact contract/instrument and effective date from the current NSE circular/contract file. Index and individual-security limits MUST remain distinct. A previously observed circular table or hard-coded constant MUST NOT replace the current daily file.
+
+**R-124 — Exchange price/operating range is distinct from broker market protection.** The system MUST validate the effective exchange price/operating range and the broker's market-protection setting as separate controls. A market-protection percentage MUST NOT be treated as permission to submit a price outside the exchange range, and a valid exchange range MUST NOT be treated as satisfying provider market-protection requirements.
+
+**R-125 — Provider order enums are versioned adapter mappings.** Order variety, order type, product, validity, AMO, market-protection, iceberg/auto-slice and other provider-specific fields MUST be mapped by broker/API version. Unknown or unsupported enum/field combinations MUST be rejected/UNKNOWN; the adapter MUST NOT silently coerce them to a different order type, product or validity.
+
+**R-126 — Conditional request fields are validated by order type.** Price, trigger price, disclosed quantity, auction number, TTL, AMO time, product and other conditional fields MUST be present/absent and validated according to the exact provider schema and selected order type/variety. A nonzero trigger price or market-protection field MUST NOT be sent where the provider says it is ignored or unsupported without an explicit reason.
+
+**R-127 — Market session and AMO semantics are provider-specific.** Regular-session, pre-open, auction and after-market order eligibility MUST be resolved against the current exchange session and provider API contract. A client-supplied AMO flag MUST NOT override a provider's documented session inference; AMO acceptance MUST NOT be equated with exchange execution or next-session acceptance.
+
+**R-128 — Above-freeze slicing requires explicit, bounded child construction.** A request exceeding the effective freeze quantity MUST be rejected or sliced only through a documented provider/exchange mechanism explicitly enabled by policy. Child quantities MUST comply with freeze/lot limits, child count limits and API schema. The adapter MUST preserve parent/child identity, requested total, each child result and remaining/rejected quantity.
+
+**R-129 — Child-set completeness is mandatory after sliced response loss.** When a sliced/multi-child response is lost or partial, the adapter MUST reconcile all possible child orders using provider/exchange evidence and retain UNKNOWN until the child set is established. It MUST NOT resubmit the entire parent quantity merely because some child IDs were not returned.
+
+**R-130 — Contract lifecycle invalidates prior validation.** A new expiry, expired contract, strike listing change, corporate-action adjustment, lot/tick/freeze revision, suspension or contract-master update MUST invalidate prior contract/order-validation approval for affected instruments. A cached instrument identity MUST NOT be treated as valid across a known effective contract change.
+
+**R-131 — Exchange and broker rejection semantics are preserved.** A rejected request MUST retain the raw broker/exchange code, message, API version, request fingerprint and all validation inputs. The adapter MUST distinguish local validation failure, broker API rejection, exchange rejection and unknown transport outcome. It MUST NOT retry a rejected order with silently altered quantity, price, product or variety.
+
+**R-132 — Dispatch requires a fresh contract-validation snapshot.** Immediately before dispatch, the adapter MUST verify that the PX-033 admission snapshot, contract-master row, lot/tick/freeze parameters, exchange price range, market session and provider API capability remain current. Any material change MUST invalidate the admission decision and require revalidation.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-221 | Contract master for the target trading date is missing | UNKNOWN; no contract resolution or order admission |
+| AT-222 | Only the previous trading day's contract file is available | Mark stale; do not reuse it as current without an explicit source rule |
+| AT-223 | Instrument token resolves to a different symbol/expiry/strike from the requested instrument | Reject identity mismatch; no fuzzy substitution |
+| AT-224 | Contract is expired, suspended, not yet active or not tradable in the current session | Reject/UNKNOWN with the exact source status |
+| AT-225 | User quantity is not a legal multiple of the effective market lot | Reject quantity; do not silently round to a lot multiple |
+| AT-226 | Lots are converted to exchange units and adapter applies the multiplier again | Detect double conversion; preserve original and normalized units and reject the request |
+| AT-227 | Index-futures tick size changes across the published index-level bands; index options use their separate tick | Validate each exact contract against its own current tick; reject off-tick prices |
+| AT-228 | Individual-stock future and option have different applicable tick rules | Use the cash-market tick for stock futures and the current underlying-price option tick rule for stock options |
+| AT-229 | Stop-loss trigger price is not aligned to the effective contract tick | Reject; do not silently adjust trigger price |
+| AT-230 | Limit price lies outside the effective exchange operating/dynamic price range | Reject on exchange-range validation even when broker market-protection value is valid |
+| AT-231 | Option dynamic price range changes for the current day | Use current dated range; do not use yesterday's range or a static percentage |
+| AT-232 | Futures order lies outside its published operating range | Reject/UNKNOWN using the effective futures range; do not use option delta range |
+| AT-233 | Quantity equals the effective freeze limit exactly | Permit quantity check if all other gates pass; preserve source row and effective date |
+| AT-234 | Quantity exceeds the effective index freeze limit by one unit | Reject or use explicitly authorized provider slicing; no single over-freeze child |
+| AT-235 | Individual-stock freeze quantity differs from another stock's freeze quantity | Use the target security's own daily contract-file row; no generic stock freeze constant |
+| AT-236 | Circular index-freeze table and current daily contract file differ | Retain both sources and resolve by effective hierarchy/current file; UNKNOWN if the discrepancy cannot be reconciled |
+| AT-237 | Contract file is truncated, duplicate-keyed, malformed or fails hash/completeness checks | Reject semantic use; mark contract data UNKNOWN |
+| AT-238 | Kite MARKET/SL-M order uses automatic market protection | Map -1 to Kite's documented automatic protection and preserve the provider-specific setting |
+| AT-239 | Upstox V3 MARKET order sets market protection to zero | Apply the documented API rejection condition; do not treat zero as “unlimited protection” |
+| AT-240 | Upstox V3 market protection is outside its documented custom range | Reject invalid provider parameter; do not clamp silently |
+| AT-241 | Dhan regular order request is built with an unsupported Kite/Upstox market-protection field | Do not inject an undocumented field; use Dhan's documented schema or return unsupported/UNKNOWN |
+| AT-242 | Upstox F&O quantity is entered in lots but API expects units | Convert once using effective market lot and preserve user lots plus payload units; do not use tick size as a quantity multiplier |
+| AT-243 | Unsupported broker product/order type/validity enum is supplied | Reject/UNKNOWN; never coerce to the nearest accepted value |
+| AT-244 | Upstox request sends is_amo=true during active market session | Apply provider rule that session inference overrides the flag; do not represent request as guaranteed AMO |
+| AT-245 | Kite TTL is mapped to Upstox or Dhan DAY/IOC without policy | Reject unsupported mapping; no silent validity downgrade |
+| AT-246 | Kite autoslice / Upstox slice / Dhan separate slicing endpoint produce child orders | Preserve provider-specific parent/child identities and exact per-child result; no generic response assumption |
+| AT-247 | Generated sliced child count exceeds provider/API maximum | Reject or require a separately authorized strategy; do not emit an oversized or partial silent fallback |
+| AT-248 | Market protection is within range but exchange dynamic price/operating range rejects the request | Preserve distinct broker/exchange validation reason; market protection does not override exchange price range |
+| AT-249 | Contract master, freeze limit or tick changes after PX-033 admission but before dispatch | Invalidate stale admission snapshot and rerun affected gates |
+| AT-250 | Provider returns a new/unknown schema field or rejection code | Preserve raw response and classify UNKNOWN/unsupported; do not silently map or retry with altered fields |
+
+PX-025 now contains **132 normative requirements (R-001–R-132) and 250 proposed acceptance scenarios (AT-001–AT-250)**. These are proposed deterministic scenarios; no parser, broker adapter or test implementation was executed.
+
+### Data limitations
+
+The daily NSE `contract.gz` and `NSE_FO_contract_ddmmyyyy.csv.gz` file for 8 November 2026 was not downloaded or parsed. The June 2026 quantity-freeze circular is a dated source, not a substitute for the current daily file. Upstox's “units in multiples of tick size” quantity wording is dimensionally inconsistent and must not be used as a conversion rule. Dhan slicing response details remain incomplete in the reviewed public order page.
