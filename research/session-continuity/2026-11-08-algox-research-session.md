@@ -307,3 +307,29 @@ PX-025 has been amended with R-031 (per-child group outcome), R-032 (provider-sc
 No reviewed provider documentation establishes safe cross-request deduplication for repeated placement after a lost acknowledgement. Continue to treat a possibly dispatched request as UNKNOWN and do not retry based only on a repeated tag/correlation value. Compound and sliced results require per-child reconciliation; incomplete child sets remain unresolved.
 
 No broker account, API, sandbox, real order, code implementation, paid service, PR or merge to `main` was used or authorized.
+
+
+## 15. Broker observation consistency, stream recovery and trade-revision audit (2026-11-08)
+
+PX-2026-027 records the provider-documentation audit of order-update stream continuity, REST observation consistency and trade correction semantics.
+
+### Findings
+
+- **Kite:** daily orders/order histories and trades/per-order trades are separate REST reads. WebSocket and HTTP postbacks provide order observations; the HTTP checksum verifies a received payload but does not prove complete delivery. The reviewed docs do not define an event cursor, missed-window replay or atomic order/trade snapshot.
+- **Upstox:** the Portfolio Stream Feed starts updates after a successful connection. `order_request_id` is documented as request-count metadata and `order_ref_id` as an internal order identifier, not a stream sequence/cursor. SDK auto-reconnect controls reconnection but the reviewed docs do not promise replay of missed updates. Order and trade reads are separate.
+- **DhanHQ:** Live Order Update messages carry order/exchange IDs and timestamps such as `LastUpdatedTime`; the reviewed schema does not define a sequence/replay cursor. Orderbook and tradebook are separate reads.
+- The reviewed official trade API pages do not define a common trade-bust/correction/reversal contract. This is a documentation gap, not proof that corrections cannot occur.
+
+### Requirements amendment
+
+PX-025 now contains **36 normative requirements and 49 proposed acceptance scenarios**:
+- R-034 requires event-history completeness to remain UNKNOWN without a documented stream continuity/replay contract.
+- R-035 treats separate REST responses as independently timed observations unless a provider guarantees a shared atomic snapshot/watermark.
+- R-036 requires original trades and corrections to be preserved append-only, with economic reversal only under authoritative provider semantics.
+- AT-044 through AT-049 test these cases using synthetic fixtures only.
+
+### Current result
+
+Current order/trade state reconciliation and historical event-stream completeness are distinct outputs. Current state may be reconstructed without proving every missed transition was replayed. Conflicting or non-atomic observations remain visible; no last-arrival-wins balancing.
+
+No broker endpoint, account, sandbox, real order, code implementation, paid service, PR or merge to `main` was used.
