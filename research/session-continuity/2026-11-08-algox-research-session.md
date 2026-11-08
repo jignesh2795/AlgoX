@@ -241,3 +241,24 @@ The current NSE CM/FO sample ZIP links were found on the official page but could
 The next task is to test whether the file-order contract and quantity units can be verified from authorized sample data or NSE research access. Until then, report an event-order ambiguity state rather than a deterministic result. After that, continue with broker disconnect/reconnect, ambiguous submission outcomes and reconciliation.
 
 The earlier wording that described historical data as having "consistent sequencing" was corrected in PX-2026-023. The research note now distinguishes file integrity, order-event reconstruction, trade linkage, event-ordering confidence and unit validation.
+
+
+## 12. Broker disconnect, ambiguous outcomes and reconciliation (2026-11-08)
+
+A new provider-documentation comparison has been recorded in [PX-2026-024 — Broker disconnect, ambiguous order outcomes and reconciliation](../ecosystem-history/2026/PX-2026-024-broker-disconnect-order-recovery-and-reconciliation.md).
+
+### Verified findings
+
+- **Zerodha Kite:** a broker OMS order ID does not prove exchange receipt or execution; `exchange_order_id` may be null. The API exposes order history and tradebook endpoints, an optional tag, and WebSocket order postbacks. The order history is day-scoped. The documented `guid` is not a usable client-supplied idempotency token.
+- **Upstox:** order history can be looked up by tag and may return all matching orders; order details/history are day-scoped. Daily and per-order trade endpoints expose individual executions. The Portfolio Stream Feed includes updates across Upstox platforms. SDK auto-reconnect is documented, but no missed-event replay cursor was established in the reviewed pages.
+- **DhanHQ:** the user/partner-generated `correlationId` can be used with `GET /orders/external/{correlation-id}`, explicitly documented for a missed order ID. Dhan also exposes order/trade books and live order updates; static-IP and rate-limit constraints apply.
+- For all three providers, the reviewed public documentation does not establish exactly-once submission or safe duplicate suppression when repeating a placement with the same tag/correlation value.
+- Live update streams are useful low-latency evidence, but the reviewed pages do not establish a common durable sequence cursor or missed-event replay guarantee. Reconciliation via order and trade read APIs is required after disconnect.
+
+### Recovery boundary
+
+If an order command may have reached the broker but the response is uncertain, keep the result in `SUBMISSION_UNKNOWN` / `RECONCILIATION_REQUIRED`. Do not automatically resubmit. Recover using provider-specific correlation/tag lookup, order history/book and trade records. Apply the same uncertainty treatment to modification and cancellation timeouts.
+
+### Status and next step
+
+Research and documentation only. No broker account, sandbox/production API, real order, code implementation, paid service or merge to `main` was used or authorized. The next research step is to turn PX-024 into a provider-neutral requirements and acceptance-test specification, while keeping external broker interactions closed unless separately authorized.
