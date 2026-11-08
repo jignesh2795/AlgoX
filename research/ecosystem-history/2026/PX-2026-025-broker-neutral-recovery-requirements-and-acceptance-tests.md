@@ -585,6 +585,38 @@ AT-050 through AT-075 now cover position roll-forward, unsettled/overnight holdi
 
 PX-025 now contains **48 normative requirements and 75 proposed acceptance scenarios** (AT-001 through AT-075). All remain proposed; none was executed in this research work.
 
+### Detailed acceptance matrix — portfolio, ledger and contract-note reconciliation
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-050 | Opening position plus signed trades matches broker closing net position | Reconciliation PASS for that instrument/product/session with all source references retained |
+| AT-051 | Broker position differs from computed roll-forward with no adjustment evidence | POSITION_ROLL_FORWARD_VARIANCE; no balancing event fabricated |
+| AT-052 | Overnight equity moves from positions view to holdings view | Model the provider's documented portfolio transition; do not interpret it as a missing sell or zero quantity |
+| AT-053 | Holdings show T+1, delivered/DP, available and collateral quantities | Preserve separate buckets; do not collapse into one settled/available quantity |
+| AT-054 | Derivatives carry forward while day activity is flat/closed | Keep opening/overnight position and day activity distinct |
+| AT-055 | Dhan ledger has debit/credit entries and voucher numbers | Verify per-entry signed amounts and running-balance arithmetic; retain voucher identity |
+| AT-056 | Dhan trade record includes per-trade tax/charge fields | Preserve raw fields separately and reconcile against actual statement/contract note |
+| AT-057 | A pay-in is PENDING or FAILED | Do not count it as posted cash credit; retain transaction ID/status |
+| AT-058 | Funds snapshot has available, collateral, utilised and withdrawable values that differ | Preserve each provider-defined component; do not flag a mismatch by comparing unlike buckets |
+| AT-059 | Kite virtual contract-note calculator produces a charge total | Label as calculated/virtual estimate; do not substitute for an issued contract note |
+| AT-060 | Upstox charge report returns aggregate charges without per-trade allocation | Reconcile at its documented aggregate scope; do not invent per-trade charge splits |
+| AT-061 | Actual contract note arrives with a charge total different from the earlier calculator estimate | Keep the issued note as posted-charge evidence; retain estimate and record the variance |
+| AT-062 | Contract note is missing after the applicable delivery window | CONTRACT_NOTE_MISSING; no synthetic note generated |
+| AT-063 | Contract note total agrees but one individual execution line is missing/mismatched | CONTRACT_NOTE_TRADE_LINE_MISMATCH; total agreement does not close line-level completeness |
+| AT-064 | Upstox historical trades have a nullable/empty trade ID for a segment | Preserve record; use a separately validated composite/statement identity or remain UNKNOWN; do not use empty ID as dedupe key |
+| AT-065 | Historical trade endpoint uses multiple pages and a middle page is unavailable | SOURCE_PAGINATION_INCOMPLETE; no period-level PASS |
+| AT-066 | Trade date and settlement date straddle a calendar/session boundary | Apply date-valid settlement rules and keep both dates; no blanket same-day settlement assumption |
+| AT-067 | Corporate action, exercise/assignment, expiry, pledge or settlement changes position without an ordinary trade | Require explicit non-trade adjustment evidence; otherwise UNEXPLAINED_POSITION_ADJUSTMENT |
+| AT-068 | Cash ledger running balance does not equal opening plus signed posted entries | LEDGER_RUNNING_BALANCE_VARIANCE; preserve original amounts and source evidence |
+| AT-069 | Same trade appears in tradebook, P&L report and contract note | Deduplicate economic execution by validated identity while retaining all source observations |
+| AT-070 | API numerics arrive as binary floating values or decimal strings with different scale | Preserve raw input/scale and exact decimal result; no binary-float contamination |
+| AT-071 | Broker P&L, trade charges, cash ledger and margin snapshot show different totals because scopes differ | Keep each measure separately typed and explain scope; do not force one total to equal another |
+| AT-072 | Depository statement or exchange balance message conflicts with broker holdings/ledger | Raise external-evidence variance; retain both versions and require review |
+| AT-073 | Funds snapshot is fetched at a different time from ledger/position data | Store each capture timestamp; do not treat snapshots as one atomic account state |
+| AT-074 | Charge tariff/rate changes across effective dates or segments | Calculate using the applicable dated schedule; do not back-apply current rate to historical trades |
+| AT-075 | Unresolved order from PX-024/025 later creates a fill that changes the account position/ledger | Link the recovered fill into execution, position and cash reconciliation; preserve the original UNKNOWN interval and resolution provenance |
+
+
 ### Scope clarification
 
 - Kite distinguishes net/day positions and holdings, and its `/charges/orders` page calls the output a **Virtual contract note**.
