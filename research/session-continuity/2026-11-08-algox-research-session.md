@@ -386,3 +386,34 @@ All are proposed acceptance tests and remain unexecuted.
 The older NSE Settlement Mechanism/“Clearing Members” pages are not treated as the controlling current stock-derivative settlement rule where they conflict with the SEBI mandatory-physical-settlement circular and later NSE Clearing PFMI disclosure. The contradiction remains recorded and must be closed against the effective clearing circulars/rulebook before implementation.
 
 No broker/clearing endpoint, account, sandbox, real order, code implementation, paid service, PR or merge to `main` was used.
+
+
+## 18. Equity-derivatives margin calculation, collection and risk controls (2026-11-08)
+
+PX-2026-030 records the NSE Clearing/SEBI margin framework and the broker margin-calculator surfaces for Kite, Upstox and Dhan. The full research record is [PX-2026-030 — Equity-derivatives margin calculation, collection and risk controls](../ecosystem-history/2026/PX-2026-030-equity-derivatives-margin-calculation-collection-and-risk-controls.md).
+
+### Source-derived findings
+
+- **SPAN:** NSE Clearing performs online intraday portfolio-based SPAN margining. Its public methodology describes 99% VaR over a one-day horizon, with a two-day horizon for futures where MTM may not be collected before the next market opens.
+- **ELM:** separate and parameterized, with dated product/position exceptions. Current published rates are a parameter snapshot, not constants for a historical model.
+- **Upfront collection:** F&O SPAN/ELM is collected before trade. From 1 February 2025, equity-derivatives upfront verification also includes net options premium payable at client level.
+- **BOD vs live clearing:** fixed BOD parameters apply to client upfront-margin verification/shortfall assessment; actual Clearing Corporation margin parameters continue to update intraday and EOD.
+- **Netting:** client positions are netted at individual-client level and grossed across clients without cross-client offset. Proprietary positions are separate.
+- **CCO:** intraday CCO uses closed futures crystallized P&L and premium payable/receivable; EOD includes futures MTM, option premiums, expiry exercise/assignment and futures final settlement. CCO margin releases after settlement completion.
+- **Collection timing:** NSE's current F&O FAQ says SPAN/ELM before trade and delivery/CCO by T+1. SEBI Circular 2025/57 aligns non-upfront margin collection to settlement day for the cash segment; that cash-segment rule is not generalized to F&O.
+- **False reporting:** NSE treats uncollected/short-collected margin reported as collected as false reporting.
+- **Broker APIs:** Kite returns per-order and basket margin calculations, Upstox exposes SPAN/exposure/net-buy-premium/tender fields, and Dhan exposes single/multi-order calculators plus fund-limit data. These are not proof of final Clearing Corporation obligation or actual client collection.
+
+### Requirements and test amendments
+
+PX-025 now contains **76 normative requirements and 130 proposed acceptance scenarios**:
+- R-062–R-076 add dated margin parameters, portfolio context, net option premium, fixed BOD verification vs live clearing parameters, client-only netting, component attribution, hedge revocation, delivery/tender/assignment, CCO, segment-specific T+1 collection, actual collection evidence, peak snapshots, confirmed release, collateral segregation and shortfall fail-closed rules.
+- AT-101–AT-130 cover parameter staleness, same-client portfolios, spreads, hedge breaks, upfront collection, premium, BOD/live distinction, snapshots, no cross-client/proprietary netting, provider APIs, expiry margin, collection timelines, CCO, ELM, false reporting, collateral haircuts, release and shortfall.
+
+All are proposed acceptance scenarios; no tests or broker API calls were made.
+
+### Critical modelling distinction
+
+Required margin, client upfront/peak verification requirement, actual collected collateral, available funds, reported collection, utilized margin, shortfall and settlement-confirmed release are separate facts. A calculator or available-balance response does not prove actual collection.
+
+No broker/clearing endpoint, account, sandbox, real order, code change, paid service, PR or merge to `main` was used.
