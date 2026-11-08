@@ -63,6 +63,8 @@ Under the new FutEq method:
 - Normal trading resumes only after combined FutEq OI across exchanges returns to **80% or below** MWPL.
 - The ban-period security list continues to be published daily.
 
+NSE Clearing's position-limit webpage (updated 19 November 2025) also lists an automated alert when NSE OI exceeds 60% of MWPL, currently at 10-minute intervals. This is a warning/alert, not the 95% EOD ban trigger. That older page does not establish whether the 60% alert input was migrated to FutEq; retain it as a source-versioned notification only and do not use it as a current FutEq calculation or ban decision without confirmation.
+
 NSE Clearing's older public HTML position-limit page, updated 19 November 2025, still describes the 95%/80% thresholds and offset-only trading using generic aggregate OI language. The January 2026 FAQ gives the updated FutEq form and must be used for the post-migration calculation.
 
 Sources:
