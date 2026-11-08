@@ -357,3 +357,32 @@ PX-025 now contains **48 normative requirements and 75 proposed acceptance scena
 A tradebook does not establish cash balance; positions do not establish demat holdings; available margin does not establish withdrawable cash; and a charge calculator does not establish the issued contract-note amount. These dimensions must be reconciled independently and linked by evidence.
 
 No broker endpoint, account, sandbox, real order, code implementation, paid service, PR or merge to `main` was used.
+
+
+## 17. Indian derivatives expiry, exercise, physical settlement and corporate actions (2026-11-08)
+
+PX-2026-029 documents NSE/SEBI requirements for expiry calendars, automatic option exercise and assignment, stock-derivative physical settlement, eligible cash/F&O netting, delivery margin, settlement obligations and contract adjustments.
+
+### Key findings
+
+- NSE's current equity-derivatives contract-specification page (updated 10 February 2026) says Tuesday expiry for the named index families and individual-security contracts, with previous-trading-day fallback if Tuesday is a trading holiday. A date-specific calendar and contract master remain mandatory.
+- SEBI Circular SEBI/HO/MRD/DOPI/CIR/P/2018/161 mandated physical settlement for all stock derivatives, phased to completion by October 2019 expiry. Index derivatives are not share-delivery contracts; stock futures and stock options can create physical delivery/funds obligations.
+- NSE's 3 January 2023 Settlement Mechanism page still says individual-security options are cash-settled; the 7 January 2023 Clearing Members page says only funds settlement for index/stock derivatives. These are explicitly recorded as stale/contradictory against the SEBI stock-derivative physical-settlement requirement and NSE Clearing's 31 March 2024 PFMI disclosure that distinguishes delivery-settled contracts and Expiry+1 settlement.
+- NSE describes automatic European-style exercise at expiry for ITM options and random assignment of long ITM positions to short positions in the same series. Actual assignment/allocation evidence is required.
+- SEBI Circular 2022/165 permits cash/F&O expiry netting only under specific eligibility, including the same TM-CM combination; institutional investors including FPIs are excluded; STT and stamp duty remain segment-wise.
+- Delivery margin applies from expiry until settlement or early pay-in under the NSE physical-settlement FAQ. Initiated early pay-in is not confirmed settlement.
+- NSE corporate actions can adjust strike/position/lot/futures base price; a merger can force-settle outstanding contracts on last cum-date and cancel GTC/GTD orders.
+
+### Requirements and test amendments
+
+PX-025 now contains **61 normative requirements and 100 proposed acceptance scenarios**:
+- R-049–R-061 add contract-calendar versioning, settlement-mode classification, automatic exercise/assignment evidence, physical delivery direction, lifecycle stages, delivery margin/early pay-in, netting eligibility, client/CM layering, append-only settlement events, corporate-action adjustments, merger closeout, segment-specific taxes and shortage/default states.
+- AT-076–AT-100 cover holiday expiry, historical calendar changes, index cash vs stock delivery, stock future/call/put obligations, ITM assignment, margin/early-pay-in, netting restrictions, taxes, client/CM aggregation, bonus/split/rights/dividend/merger actions and delivery shortfall.
+
+All are proposed acceptance tests and remain unexecuted.
+
+### Source conflict decision
+
+The older NSE Settlement Mechanism/“Clearing Members” pages are not treated as the controlling current stock-derivative settlement rule where they conflict with the SEBI mandatory-physical-settlement circular and later NSE Clearing PFMI disclosure. The contradiction remains recorded and must be closed against the effective clearing circulars/rulebook before implementation.
+
+No broker/clearing endpoint, account, sandbox, real order, code implementation, paid service, PR or merge to `main` was used.
