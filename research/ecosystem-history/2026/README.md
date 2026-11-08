@@ -46,6 +46,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-038](PX-2026-038-historical-price-integrity-corporate-actions-and-backtest-reproducibility.md) | Historical price integrity, corporate actions and backtest reproducibility |
 | [PX-2026-039](PX-2026-039-point-in-time-universe-and-index-membership-reconstruction.md) | Point-in-time security universe and index membership reconstruction |
 | [PX-2026-040](PX-2026-040-backtest-execution-realism-liquidity-and-transaction-costs.md) | Backtest execution realism, liquidity and transaction-cost controls |
+| [PX-2026-041](PX-2026-041-backtest-validity-leakage-and-statistical-robustness.md) | Backtest validity, leakage prevention and statistical robustness |
 
 ## Scope and evidence policy
 
