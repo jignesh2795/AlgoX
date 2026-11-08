@@ -498,3 +498,27 @@ PX-025 now contains **118 normative requirements and 220 proposed acceptance sce
 These scenarios are proposed for a future deterministic fake-provider/fake-clearing harness and have not been run.
 
 No order engine code, broker integration, sandbox/production request, live order, paid service, PR or merge to `main` was used.
+
+
+## 22. Exchange contract master, freeze limits and broker order validation (2026-11-08)
+
+PX-2026-034 audits the effective NSE contract master and separate broker request schemas for Kite, Upstox V3 and DhanHQ v2.
+
+### Findings
+
+- Exchange contract identity must include exchange/segment, underlying/security, instrument ID/token, contract family, expiry, strike, option type, trading status and effective contract-master version. Symbol-only or token-only matching is insufficient.
+- NSE current specification has distinct tick rules for index futures, index options, stock futures and stock options; exchange operating/dynamic price ranges are distinct from broker market protection.
+- NSE Circular NSE/FAOP/74469 (29 May 2026) gives index freeze limits effective 1 June 2026 (BANKNIFTY 900, NIFTY 1800, FINNIFTY 1800, MIDCPNIFTY 2800, NIFTYNXT50 600) and directs members to load the dated `contract.gz` and `NSE_FO_contract_ddmmyyyy.csv.gz` files. The actual 8 Nov 2026 daily file was not downloaded, so those figures are not treated as evergreen constants.
+- Kite supports provider-specific varieties/products/validity/market protection/autoslice fields; Upstox V3 has its own enums, DAY/IOC, session-inferred AMO, slicing and market-protection constraints; Dhan v2 has its own product/order/AMO fields and separate slicing endpoint. Do not normalize provider enums by silent coercion.
+- Upstox documentation describes F&O/equity units and commodity lots but also says units are multiples of tick size; the wording is dimensionally inconsistent. Use the effective exchange lot/quantity file and do not treat price tick as a quantity conversion factor.
+- Dhan's reviewed slicing endpoint does not publish a complete response schema; child-set recovery remains UNKNOWN until verified.
+
+### Requirements and tests
+
+PX-025 now contains **132 normative requirements and 250 proposed acceptance scenarios**:
+- R-119–R-132 cover effective-dated contract data, derivative identity, quantity unit/lot conversions, exact tick validation, daily freeze quantity, exchange price range vs broker protection, versioned broker enums, conditional fields, AMO/session semantics, explicit slicing, child completeness, contract lifecycle invalidation, rejection evidence and fresh validation before dispatch.
+- AT-221–AT-250 cover missing/stale contract file, identity mismatch, expiry/suspension, market lot, double conversion, product tick differences, dynamic price ranges, freeze edge conditions, malformed files, Kite/Upstox market protection, Dhan unsupported fields, Upstox lot units, provider enums, AMO, validity mapping, slicing, stale admission and unknown provider rejection codes.
+
+The current daily contract master and provider schema gaps remain explicit; no parser, adapter or test implementation was performed.
+
+No broker/exchange API, account, sandbox, production order, code change, paid service, PR or merge to `main` was used.
