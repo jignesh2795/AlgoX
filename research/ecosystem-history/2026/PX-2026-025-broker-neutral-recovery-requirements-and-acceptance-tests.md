@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **293 normative requirements (R-001–R-293) and 520 proposed acceptance scenarios (AT-001–AT-520)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **313 normative requirements (R-001–R-313) and 550 proposed acceptance scenarios (AT-001–AT-550)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1962,3 +1962,141 @@ PX-025 now contains **293 normative requirements (R-001–R-293) and 520 propose
 - Fake adapters must never fall back to real broker, feed, account or exchange endpoints.
 - Captured live events replayed through a fake adapter remain synthetic replay evidence, not fresh broker trades.
 - All test cases in this amendment are proposed; no harness or mode was executed.
+
+
+## 30. Operational observability, incident response and safe recovery (2026-11-08)
+
+PX-2026-044 defines operational telemetry, durable audit evidence, alerting, incident classification, safe containment/recovery, capacity/change management and BCP/DR. It also scopes the January 2026 SEBI technical-glitch framework to covered stock brokers/platforms rather than treating it as a universal rule for every AlgoX deployment.
+
+### Additional normative requirements
+
+### R-294 — Operational state is observable by subsystem and mode
+
+The system MUST expose health for market data, strategy, risk gates, order command, broker adapter, persistence, accounting, UI/API and observability pipeline independently. A single aggregate green health flag MUST NOT conceal a degraded critical subsystem.
+
+### R-295 — Telemetry and authoritative domain evidence are distinct
+
+Metrics, logs and traces MUST be treated as diagnostic telemetry, not substitutes for durable command/order/trade/ledger events or external broker/exchange evidence. A dashboard or log message MUST NOT prove an order/fill/kill-switch action succeeded.
+
+### R-296 — Structured operational events carry correlation and provenance
+
+Critical operational events MUST retain event ID/version, correlation/causation IDs, intent/command/attempt IDs, mode/epoch, pseudonymized account/provider scope, canonical instrument, component/build, reason/result, source/provider time, UTC receive and monotonic time, policy/adapter version and source reference where applicable.
+
+### R-297 — Secrets and sensitive identifiers are excluded from telemetry
+
+Logs, traces, metrics labels and incident exports MUST NOT expose credentials, API secrets, access tokens, session cookies, private keys or unnecessary full client identifiers. Redaction MUST occur before sensitive payloads leave the trusted process; secret-bearing configuration and request headers MUST NOT be dumped by debug logging.
+
+### R-298 — Observability pipeline loss is itself monitored
+
+The system MUST monitor exporter/collector availability, local buffer depth, telemetry drops, send retries, storage lag, retention, clock skew and audit-event sequence gaps. If critical durable audit buffering fails or fills, a high-severity local condition MUST be raised and new risk-increasing actions MUST be blocked where admission/command evidence can no longer be preserved.
+
+### R-299 — Feed and command SLOs are field/use-case specific
+
+Freshness, latency and availability SLOs MUST be scoped by subsystem, mode, market phase, instrument/product and required data field. A single global heartbeat or latency threshold MUST NOT declare every feed/order path healthy.
+
+### R-300 — Critical alerts are deduplicated without hiding continuing impact
+
+Alert deduplication MUST preserve first/last occurrence, duration, scope growth, severity, owner and acknowledgement history. An alert storm MUST be grouped without suppressing a continuing incident or an increase in affected accounts/instruments/services.
+
+### R-301 — Incident records preserve timeline and evidence append-only
+
+Every incident MUST retain detection, start/acknowledgement, severity, affected scope, market/session phase, customer/order/position/ledger impact, source event references, actions, approvals, recovery results, root cause and corrective actions. Later updates MUST append rather than overwrite the original timeline.
+
+### R-302 — Service restoration and account reconciliation are separate closure states
+
+An incident MUST NOT be marked fully resolved solely because the service is reachable. Potentially working orders, unresolved fills, position/ledger variance, unsettled obligations or unverified protective actions MUST remain open until reconciled or explicitly classified UNKNOWN with approved handling.
+
+### R-303 — Regulatory technical-glitch applicability is explicitly assessed
+
+Where a stock-broker entity is involved, the system/compliance workflow MUST record whether the entity and platform are within the current SEBI technical-glitch framework, including IBT/STWT scope and registered client threshold. A generic platform incident MUST NOT be automatically labelled a reportable SEBI technical glitch without this scope assessment.
+
+### R-304 — Covered-broker technical-glitch threshold and exclusions are versioned
+
+For entities within scope, regulatory classification MUST evaluate the circular's contiguous five-minute trading-session impact definition and explicit excluded issue categories, including global provider/MII disruptions, KYC, non-trading back-office, payment gateway and decision-support tool issues. The current circular/exchange interpretation MUST be referenced by version.
+
+### R-305 — Covered-broker reporting deadlines are tracked independently
+
+Where the SEBI technical-glitch framework applies, the incident workflow MUST track exchange/client notification within two hours, PIR by T+1 (next trading day where T+1 is a trading holiday) and RCA within 14 working days, using the applicable exchange format and reporting portal. These statutory outer deadlines MUST NOT be substituted for internal faster response SLOs.
+
+### R-306 — Capacity planning includes peak loads and critical paths
+
+The system MUST measure peak server, network, application, database, queue and provider/API load. Capacity tests MUST cover high-concurrency market open/close, reconnect storms and incident recovery. Averages alone MUST NOT establish sufficient capacity.
+
+### R-307 — Queue backpressure cannot silently drop critical events
+
+Critical market, broker order/trade, risk, accounting and audit streams MUST use bounded queues with observable backpressure and explicit drop/failure states. If reliable processing cannot be maintained, dependent risk-increasing actions MUST be blocked and event-history completeness marked UNKNOWN.
+
+### R-308 — Software and configuration changes are traceable and tested
+
+Every production-bound code/config/schema/reference-data change MUST retain owner/reviewer, artifact/config hash, affected requirements, test evidence, deployment time, canary/health criteria, rollback plan and post-deployment validation. Unverified changes MUST NOT be silently promoted to live operation.
+
+### R-309 — Incident response has ownership, escalation and typed state
+
+Incidents MUST have severity, commander/owner, affected scope, runbook, acknowledgement/escalation history and typed states from detection through containment, service restoration, account reconciliation and postmortem. Alert acknowledgement MUST NOT be treated as issue resolution.
+
+### R-310 — Kill-switch invocation is not verified containment
+
+ENTRY_BLOCK, COMMAND_FREEZE, CANCEL_WORKING, REDUCE_ONLY, FLATTEN and CONNECTOR_DISABLE MUST be separate, scoped actions. A control MUST only be marked VERIFIED after its actual effect is independently checked; lost control-channel response or missing broker evidence MUST remain UNKNOWN. A kill switch MUST NOT blindly disconnect the only order-observation/reconciliation path.
+
+### R-311 — Recovery preserves ambiguous commands and reconciles external state
+
+After incident/restart, the system MUST recover broker open orders, recent order history, trades, child orders, positions, holdings, funds/margin, cash ledger and settlement obligations before resuming risk-increasing activity. Possibly dispatched commands MUST NOT be blindly retried or considered absent because local state is missing.
+
+### R-312 — Failover uses fencing and one command authority
+
+A failover MUST establish one active command authority per broker/account/strategy scope using a durable lease/generation/fencing mechanism. An old writer MUST be unable to dispatch after failover. Ambiguous lease/ownership, event offset or idempotency state MUST block new exposure until reconciled.
+
+### R-313 — RTO/RPO and disaster recovery are tested and scoped
+
+The system MUST define RTO/RPO per critical capability and preserved data class, including event log, idempotency state, account ledger, configuration and audit. Recovery drills MUST verify backups, restore, fencing, broker reconciliation and degraded-mode policy. Untested objectives MUST NOT be reported as achieved.
+
+### Additional deterministic acceptance scenarios
+
+These extend AT-001 through AT-520. Use synthetic metrics/logs/traces, fake incident events, local buffers, fake broker recovery and simulated failover only.
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-521 | Order service is healthy while market-data consumer is stalled | Aggregate health must show the feed/consumer degradation; risk gate using affected data is UNKNOWN/blocked |
+| AT-522 | WebSocket heartbeat continues but one subscribed instrument has no updates | Socket can remain healthy while per-instrument freshness alert fires |
+| AT-523 | Central telemetry backend becomes unavailable while trading services remain up | Local durable critical-event buffer records the outage; buffer depth/send retries are visible; no event silently discarded |
+| AT-524 | Local critical audit buffer reaches capacity | Raise critical local incident and block risk-increasing dispatch where evidence cannot be durably recorded |
+| AT-525 | Debug logger attempts to serialize authorization headers/API token | Redaction prevents secret emission; test searches logs/traces for secret canaries and fails on leakage |
+| AT-526 | Queue overflow drops market-data frames | Record drop count and affected subscriptions; invalidate event completeness and dependent risk admission |
+| AT-527 | Broker order event queue lags while socket is connected | Alert on processing/consumer lag; do not declare broker-order subsystem healthy from socket state alone |
+| AT-528 | Duplicate critical alerts occur during one ongoing incident | Deduplicate into one incident while retaining first/last time, count, growing scope and acknowledgement history |
+| AT-529 | Same failure spreads from one account to multiple instruments/accounts | Incident scope and severity update; deduplication must not hide scope growth |
+| AT-530 | Alert is acknowledged but underlying order-state UNKNOWN persists | Incident remains open; acknowledgement is not resolution |
+| AT-531 | Service endpoint recovers but one broker order may still be working | Mark SERVICE_RESTORED and ACCOUNT_RECONCILIATION_PENDING; do not close the incident |
+| AT-532 | Potential kill-switch command times out after invocation | Mark containment UNKNOWN; verify entry gate and broker working orders independently; no success claim |
+| AT-533 | ENTRY_BLOCK succeeds but CANCEL_WORKING has not been confirmed | Record new entries blocked and working-order cancellation pending as separate states |
+| AT-534 | Kill switch disconnects the broker adapter before open orders are queried | Flag loss of observability; do not mark working orders cancelled or account safe |
+| AT-535 | Operator selects FLATTEN during a stock MWPL ban or physical-delivery constraint | Re-evaluate rule-specific risk; do not assume flatten is always permitted or safe |
+| AT-536 | Incident occurs for a covered broker with IBT/STWT and more than 10,000 eligible registered clients | Regulatory applicability is marked IN_SCOPE and reporting deadlines are created |
+| AT-537 | Covered-broker trading-related malfunction lasts four contiguous minutes | Internal incident/alert still exists; do not classify solely under the five-minute SEBI threshold as the defined glitch |
+| AT-538 | Covered-broker trading-related malfunction lasts five contiguous minutes | Trigger the defined technical-glitch threshold and applicability/reporting workflow |
+| AT-539 | Global cloud/MII disruption or payment-gateway/KYC/back-office issue matches an explicit exclusion | Retain operational incident but classify the relevant SEBI technical-glitch exclusion accurately |
+| AT-540 | Only mobile app is affected while web trading remains functional | Preserve incident; apply the circular's stated disincentive exception only when conditions are satisfied |
+| AT-541 | Covered-broker glitch notification is not sent within two hours | Raise regulatory deadline breach and preserve evidence/timeline; do not reset timer on incident acknowledgement |
+| AT-542 | PIR is due T+1 but that day is a trading holiday | Resolve deadline to next trading day under the circular; preserve calendar and computation |
+| AT-543 | RCA is still incomplete at the 14-working-day deadline | Escalate deadline risk/breach, retain draft and evidence; do not mark reporting complete |
+| AT-544 | Peak load at market open saturates order/event queues while average daily utilization is low | Capacity alert uses peak data; block unsafe risk-increasing paths if critical queues cannot preserve events |
+| AT-545 | Deployment changes order adapter schema without linked tests/rollback evidence | Change-management gate fails; live promotion blocked |
+| AT-546 | Canary deployment causes error/latency regression | Trigger rollback criteria and preserve deployment/version/incident association |
+| AT-547 | New and old failover workers both believe they own broker command authority | Fencing token permits one writer only; old writer dispatch rejected |
+| AT-548 | DR restore recovers database but event log/idempotency state is behind | Recovery state UNKNOWN; no order dispatch until state/ broker orders reconciled |
+| AT-549 | RTO/RPO targets are documented but no drill has tested them | Mark objective DEFINED/UNVERIFIED, not ACHIEVED |
+| AT-550 | Incident recovery report says service is healthy but cash ledger/positions still diverge | Keep ACCOUNT_RECONCILIATION_PENDING; overall recovery is not complete |
+
+PX-025 now contains **313 normative requirements (R-001–R-313) and 550 proposed acceptance scenarios (AT-001–AT-550)**. These are proposed tests only; no production system, broker, market feed, paper/live account or incident was exercised.
+
+### Regulatory applicability boundary
+
+The 9 January 2026 SEBI technical-glitch circular applies to stock brokers providing IBT/STWT platforms with more than 10,000 registered clients (excluding closed accounts) as at 31 March of the previous financial year. For in-scope incidents it defines a five-minute contiguous trading-session malfunction threshold and specified reporting timelines. Entity-specific compliance review must determine applicability; internal AlgoX engineering incident thresholds may be broader and faster.
+
+### Operational recovery boundary
+
+- Metrics/logs/traces are diagnostic, not authoritative proof of broker or exchange state.
+- Service restoration and account/order/ledger reconciliation are separate closure states.
+- Kill-switch invocation must not be labelled verified containment until the relevant new-entry, working-order and connector effects are checked.
+- Failover must use fencing and one command authority; ambiguous ownership or recovery state blocks new risk-increasing commands.
+- RTO/RPO are not claimed achieved until tested in drills.
