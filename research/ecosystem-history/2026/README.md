@@ -39,6 +39,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-031](PX-2026-031-clearing-margin-reports-short-allocation-and-risk-enforcement.md) | Clearing margin reports, short allocation and risk enforcement |
 | [PX-2026-032](PX-2026-032-position-limits-mwpl-ban-period-and-intraday-risk-monitoring.md) | Position limits, MWPL ban period and intraday risk monitoring |
 | [PX-2026-033](PX-2026-033-order-admission-independent-risk-gates-and-exposure-classification.md) | Order admission, exposure classification and independent risk gates |
+| [PX-2026-034](PX-2026-034-exchange-contract-master-freeze-limits-and-broker-order-validation.md) | Exchange contract master, freeze limits and broker order validation |
 
 ## Scope and evidence policy
 
