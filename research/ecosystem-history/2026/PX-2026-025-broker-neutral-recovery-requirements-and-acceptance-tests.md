@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **177 normative requirements (R-001–R-177) and 340 proposed acceptance scenarios (AT-001–AT-340)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **192 normative requirements (R-001–R-192) and 370 proposed acceptance scenarios (AT-001–AT-370)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1297,3 +1297,76 @@ PX-2026-037 reviews official Kite, Upstox V3 and DhanHQ v2 feed/historical docum
 | AT-340 | Provider alias/token changes while canonical contract remains the same | Link observations through the effective-dated PX-036 alias crosswalk; historical references keep the prior alias |
 
 PX-025 now contains **177 normative requirements (R-001–R-177) and 340 proposed acceptance scenarios (AT-001–AT-340)**. These are proposed deterministic tests only; no live feed or historical API was queried.
+
+## 24. Historical data coverage, expired contracts and backtest provenance (2026-11-08)
+
+PX-2026-038 compares historical and expired-contract data across Kite, Upstox and Dhan and defines reproducible backtest-data rules. See [PX-2026-038 — Historical data coverage, expired contracts and backtest provenance](PX-2026-038-historical-data-coverage-expired-contracts-and-backtest-provenance.md).
+
+### Additional normative requirements
+
+**R-178 — Historical datasets declare coverage class.** Every historical dataset MUST be labeled as exact active contract, exact expired contract, continuous futures daily, rolling moneyness options, underlying daily/intraday or UNKNOWN. Coverage class MUST be retained at dataset and row level where relevant; different classes MUST NOT be blended into an unlabeled candle series.
+
+**R-179 — Provider retrieval limits and date semantics are versioned.** Every query adapter MUST encode provider/API-specific interval availability, maximum retrieval windows and date inclusivity. Dhan non-inclusive toDate, Upstox inclusive date ranges and Kite timestamp query parameters MUST remain distinct. Adjacent chunks MUST be checked for overlap/gaps.
+
+**R-180 — Expired contract coverage is explicitly proven.** An importer MUST use exact expired-instrument identifiers/keys or a provider-documented expired-contract endpoint before claiming exact expired-contract coverage. Kite continuous futures daily, Dhan rolling ATM-relative option history and active-contract historical candles MUST NOT be described as equivalent exact-contract archives.
+
+**R-181 — Upstox expired contract keys are canonical-mapped.** Upstox expired_instrument_key MUST be resolved to the PX-036 canonical contract using the underlying instrument key, expiry and complete contract terms. The key and expiry suffix MUST be preserved as source aliases, not parsed into a guessed symbol-only identity.
+
+**R-182 — Dhan rolling options remain moneyness-relative.** Dhan rolling-option records MUST preserve actual returned strike, spot, expiry selector, option side and time. They MUST be labeled ROLLING_MONEYNESS_OPTIONS and MUST NOT be used as fixed-strike exact-contract history unless each observation is individually reconciled to the exact listed contract.
+
+**R-183 — Kite continuous data is restricted to its documented scope.** Kite continuous=1 MUST be used only under the documented NFO/MCX futures daily-candle semantics. It MUST NOT be treated as a general expired-option or expired-intraday data source. Any expired token not cached before expiry remains unresolved for direct token-based history.
+
+**R-184 — Historical retrievals are immutable and reproducible.** Every historical retrieval MUST persist query parameters, provider/API version, canonical/provider instrument identity, request/response times, response hash, parser version, record count, first/last timestamp and missing/duplicate-row report. A backtest MUST pin the actual dataset snapshot rather than re-fetching mutable history implicitly.
+
+**R-185 — Candle timestamp and finalization semantics are respected.** The importer MUST preserve provider candle timestamp, timezone/offset, interval and whether the timestamp denotes bucket start or another documented boundary. Strategies MUST NOT use final OHLCV/OI values before that candle would have closed.
+
+**R-186 — OI/IV/spot fields remain nullable and source-scoped.** Missing OI, IV, spot or option metadata MUST remain null/UNKNOWN, not zero. OI/IV/spot values from rolling options or one provider MUST NOT be attached to a different exact contract or time bucket without an authoritative mapping.
+
+**R-187 — Historical data does not silently imply corporate-action adjustment.** Raw provider candles MUST be preserved. Any split/bonus/rights/dividend/merger or derivative adjustment MUST be a separate effective-dated derived transformation with formula, factor, source circular and policy version. An undocumented provider adjustment must remain UNKNOWN.
+
+**R-188 — Continuous futures construction is a versioned derived series.** A continuous futures dataset MUST retain every constituent contract, roll trigger/date, price basis, adjustment method/factor, volume/OI policy and source history. It MUST never be represented as an executable contract identity.
+
+**R-189 — Rolling moneyness is not a fixed contract.** Any rolling ATM/relative-strike option series MUST retain the moneyness selector and actual strike/spot history. It MUST NOT be evaluated as a fixed-strike option strategy unless exact contract mapping is established per timestamp.
+
+**R-190 — Query chunk coverage is verified.** For any historical API with maximum date windows, the importer MUST split requests into compliant chunks and verify all expected boundaries, record counts and timestamp continuity. Missing or failed chunks MUST remain explicit; adjacent requests MUST not double-count overlap candles.
+
+**R-191 — OHLC-only data cannot prove intrabar execution.** A candle-only backtest MUST declare its execution/fill model and MUST NOT infer a guaranteed limit/stop fill or queue position solely from the bar's high/low. Tick/depth fidelity and candle fidelity MUST be reported separately.
+
+**R-192 — Backtest replay is as-of and no-lookahead.** Every strategy decision MUST use only data, contract listings, expiry/adjustment metadata and finalized bars available at that decision time. Dataset revision, future contract master, final candle values before close or later corporate-action knowledge MUST NOT leak into an earlier simulation.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-341 | Kite minute/day historical query includes OI only when the OI parameter is enabled | Preserve absent OI as null; do not default to zero |
+| AT-342 | Kite continuous=1 is requested for an expired NFO futures day series | Accept only the documented daily continuous-futures coverage class |
+| AT-343 | Kite continuous=1 is requested for expired option minute candles | Reject/UNKNOWN; do not claim documented support |
+| AT-344 | Kite expired token was not captured before expiry | Direct token-based historical retrieval remains UNKNOWN/unavailable |
+| AT-345 | Upstox V3 requests 1-minute history for a period exceeding one month | Split into compliant windows and verify all requested timestamps |
+| AT-346 | Upstox V3 requests 30-minute data over a period exceeding one quarter | Split according to documented maximum retrieval window |
+| AT-347 | Upstox V3 requests hourly data over more than one quarter | Split by quarter and verify boundary candles |
+| AT-348 | Upstox V3 requests daily data over more than one decade | Split into date windows without overlap or gaps |
+| AT-349 | Upstox V3 minute history before January 2022 is requested | Return unsupported/UNKNOWN rather than padding missing history |
+| AT-350 | Upstox expired instrument key includes a specific contract expiry | Resolve key to exact PX-036 contract identity and preserve expiry suffix |
+| AT-351 | Upstox expired 1-minute/3-minute/5-minute/15-minute/30-minute/day candle request | Accept only documented interval set and store source version |
+| AT-352 | Upstox expired date range start and end boundaries are inclusive | Respect inclusive range and deduplicate adjacent chunk boundaries by exact bar key |
+| AT-353 | Dhan intraday active-instrument query spans more than 90 days | Split into <=90-day chunks; no lost days |
+| AT-354 | Dhan daily historical query uses toDate as non-inclusive | Exclude toDate per source semantics; retain the query boundary |
+| AT-355 | Dhan expired-option query spans more than 30 days | Split into <=30-day chunks and reconcile all date boundaries |
+| AT-356 | Dhan rolling ATM option series changes actual strike as spot moves | Preserve each actual strike/spot and classify the dataset as rolling moneyness |
+| AT-357 | Strategy requests a fixed 22,000-strike option but Dhan rolling ATM history shifts between strikes | Reject dataset as non-equivalent unless each timestamp is mapped to the requested fixed contract |
+| AT-358 | Dhan rolling-option query requests ATM+10 for index options near expiry | Validate selector against documented near-expiry index strike range |
+| AT-359 | Dhan rolling-option query requests ATM+4 for a non-index/other contract where maximum is ATM+3 | Reject unsupported selector; no extrapolation |
+| AT-360 | Exact expired option history is absent from one provider but rolling ATM history exists from another | Keep coverage classes distinct; do not substitute rolling data for exact fixed-contract history |
+| AT-361 | Historical provider returns no OI for some bars but OHLCV exists | Preserve OI as null for missing bars and flag completeness; do not forward-fill OI |
+| AT-362 | Historical response returns candle timestamps in reverse chronological order | Normalize/order by timestamp only after validating uniqueness; preserve raw response order and report |
+| AT-363 | Two adjacent chunks return one overlapping candle | Deduplicate by full source/bar key while retaining both response provenance records |
+| AT-364 | Adjacent chunks omit a boundary candle | Record a coverage gap; do not synthesize a flat bar |
+| AT-365 | Corporate action changes historical price basis after raw data retrieval | Keep raw bars unchanged and create a separate effective-dated adjusted view with factor/source provenance |
+| AT-366 | Continuous futures roll switches from old to new contract | Retain each raw contract series and apply only the declared roll/adjustment policy |
+| AT-367 | Backtest uses a final candle's high/low before its interval closes | Detect lookahead and fail the backtest validation |
+| AT-368 | OHLC candle high/low crosses a limit price but no tick/depth evidence exists | Use the declared probabilistic/conservative fill model; do not claim a guaranteed fill |
+| AT-369 | Historical contract is absent from current instrument master but existed at historical date | Resolve through historical contract/expired key snapshot, not current master or fuzzy symbol |
+| AT-370 | Historical dataset is re-fetched and values differ from the pinned source snapshot | Preserve original backtest dataset hash; create a new data revision and do not silently rewrite prior result |
+
+PX-025 now contains **192 normative requirements (R-001–R-192) and 370 proposed acceptance scenarios (AT-001–AT-370)**. These are deterministic proposed scenarios; no historical API request or backtest was executed.
