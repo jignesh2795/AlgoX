@@ -333,3 +333,27 @@ PX-025 now contains **36 normative requirements and 49 proposed acceptance scena
 Current order/trade state reconciliation and historical event-stream completeness are distinct outputs. Current state may be reconstructed without proving every missed transition was replayed. Conflicting or non-atomic observations remain visible; no last-arrival-wins balancing.
 
 No broker endpoint, account, sandbox, real order, code implementation, paid service, PR or merge to `main` was used.
+
+
+## 16. Portfolio, cash-ledger, charge and contract-note reconciliation audit (2026-11-08)
+
+PX-2026-028 expands broker recovery into account-level economic reconciliation: portfolio positions, delivery holdings, cash ledger, charges, contract notes, funds/margin and external evidence.
+
+### Provider evidence
+
+- **Kite:** `net` and `day` positions are distinct; overnight equity moves from positions to holdings. Holdings include T+1, realised/settled, used/authorised and collateral quantities. The charges endpoint is labelled a virtual contract note and is not proof of the actual issued note.
+- **Upstox:** exposes short-term positions, holdings, historical trades (documented for the last three financial years), trade-wise realised P&L, aggregate charges by segment/financial year and payment transactions. Historical trade examples include a blank trade_id for an MF record, so the identifier is not universally populated.
+- **DhanHQ:** exposes holdings buckets (total, DP, T+1, available, collateral), open positions, a dated cash ledger with voucher/debit/credit/running-balance fields, paginated historical trades with exchangeTradeId and charge fields, and a separate fund-limit snapshot.
+- **NSE investor advisory:** instructs investors to receive contract notes within 24 hours, account statements at least quarterly, and verify demat and exchange-reported balance records.
+
+### Requirements amendment
+
+PX-025 now contains **48 normative requirements and 75 proposed acceptance scenarios**:
+- R-037–R-048 distinguish accounting layers, stable identity scope, explicit position/cash roll-forwards, holdings buckets, actual contract notes, dated charges, funds vs withdrawable cash, P&L dimensions, pagination completeness, external evidence and raw exact-decimal numerics.
+- AT-050–AT-075 cover these cases through synthetic fixtures, including ledger running balance, unsettled holdings, missing notes, aggregate charges, cross-source duplicates, corporate actions, data pagination and exact-decimal preservation.
+
+### Reconciliation rule
+
+A tradebook does not establish cash balance; positions do not establish demat holdings; available margin does not establish withdrawable cash; and a charge calculator does not establish the issued contract-note amount. These dimensions must be reconciled independently and linked by evidence.
+
+No broker endpoint, account, sandbox, real order, code implementation, paid service, PR or merge to `main` was used.
