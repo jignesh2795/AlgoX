@@ -262,3 +262,27 @@ If an order command may have reached the broker but the response is uncertain, k
 ### Status and next step
 
 Research and documentation only. No broker account, sandbox/production API, real order, code implementation, paid service or merge to `main` was used or authorized. The next research step is to turn PX-024 into a provider-neutral requirements and acceptance-test specification, while keeping external broker interactions closed unless separately authorized.
+
+
+## 13. Broker-neutral recovery requirements and acceptance tests (2026-11-08)
+
+PX-2026-025 has translated the provider comparison in PX-024 into a proposed requirements baseline and a deterministic fake-provider test matrix.
+
+### Scope and deliverables
+
+- 30 normative requirements cover durable intent/attempt evidence, unknown command outcomes, no blind retry, identity separation, order/trade reconciliation, event provenance, stream recovery, conflicts, child orders, session retention, risk gating, exact units, concurrency fencing and reproducibility.
+- 35 deterministic acceptance scenarios cover lost acknowledgements, proven non-dispatch, delayed visibility, zero/one/multiple correlation matches, partial fills, duplicate trades, cancel/modify races, reconnect gaps, session rollover, process crashes, multi-worker races, manual orders, sliced orders, unit discrepancies and unknown statuses.
+- The document defines candidate reconciliation outcomes and algorithm phases, while explicitly deferring final enums, schema, storage technology and adapter interfaces.
+- Tests are specified only; no implementation exists in this workstream and no tests were executed.
+
+### Requirements decision
+
+The core rule remains: once a command may have reached the provider, missing acknowledgement means UNKNOWN. No automatic retry, replacement or false rejection is allowed before adequate reconciliation evidence is available. Order and trade observations must be reconciled independently, and unresolved exposure must not be treated as zero.
+
+### Architecture relationship
+
+PX-025 is proposed as a requirements input to the existing `ALG-ARCH-001` provenance baseline: intents/commands/attempts and provider observations must remain attributable; reconciliation is a derived claim that cites the evidence and policy/parser version used. This does not authorize architecture implementation or revise the architecture baseline itself.
+
+### Status and boundaries
+
+Research specification completed. Provider contract gaps remain open; all 10 future implementation gates in PX-025 remain OPEN, PARTIAL or PROPOSED. No broker API, account, sandbox, real order, code change, paid service, PR or merge to `main` was used or authorized.
