@@ -102,7 +102,7 @@ The circular also says end-of-day positions are considered on a gross basis for 
 - NCL/CMPT/74811 dated 22 June 2026, effective 1 July 2026; and
 - NCL/CMPT/76459 dated 21 September 2026, effective 1 October 2026.
 
-The latter references the prior 2026 schedule and the 2025 framework, and states that the security-wise MWPL, TM, FPI, MF, proprietary and client limits for individual-security contracts are in Annexure I. The official archive URL was not accessible during this research pass; consequently the Annexure I security-level numbers and any effective-date changes in the 2026 table have not been inspected. The 2025 percentage table is retained as historical source context, not asserted as the current 1 October 2026 schedule.
+The latter reference was located through a secondary circular index that reproduced the circular metadata/text. The expected official NSE archive URL was then attempted but was not accessible in this research environment. Accordingly, the circular number/date/effective date are a source lead rather than independently verified official-PDF evidence in this pass; the Annexure I security-level numbers and any effective-date changes in the 2026 table have not been inspected. Treat the 1 October 2026 schedule and all per-security values as UNKNOWN until the official circular/annexure or matching UDiFF/limit file is retrieved. The 2025 percentage table is retained as historical source context, not asserted as the current 1 October 2026 schedule.
 
 Sources:
 - NCL/CMPT/70271 (18 September 2025): https://www.archive.nseclearing.in/content/circulars/CMPT70271.pdf
