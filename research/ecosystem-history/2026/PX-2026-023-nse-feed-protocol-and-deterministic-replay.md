@@ -12,7 +12,7 @@ NSE's January 2023 public market-data circular confirms that tick-by-tick order 
 
 The circular does not identify the exact in-force protocol revision for every segment or publish sufficient snapshot-message detail to certify a 2023 snapshot as a sequence-aligned replay checkpoint. A separate archived FO MTBT document is version 6.1 (January 2019); a CM/CD document is version 6.2 (September 2021) and its revision history records an FAO feed discontinuation in that document's lineage. Since the 2023 circular still lists FO MTBT streams, these documents must not be collapsed into a single protocol story. The exact 2023 FO protocol/version and snapshot schema remain open pending an authorized, date-pinned source.
 
-A second important route is now evidenced: NSE's non-confidential Historical Order & Trade specification v1.18 (18 May 2026) describes full historical order-book-event and trade datasets for CM and F&O. It states that full orders are made available after 90 calendar days and full trades after 30 days, in fixed-length records with consistent sequencing and timestamps suitable for historical reconstruction. This is a stronger candidate for offline replay than trying to reconstruct history from retail broker WebSockets. It is a subscription product, not a free public dump.
+A second important route is now evidenced: NSE's non-confidential Historical Order & Trade specification v1.18 (18 May 2026) describes full historical order-book-event and trade datasets for CM and F&O. It states that full orders are made available after 90 calendar days and full trades after 30 days, in fixed-length records with timestamps and order/trade identifiers. The reviewed public layouts do not document a per-event sequence field or guarantee exact ordering for equal-timestamp events. This is a stronger candidate for offline replay than trying to reconstruct history from retail broker WebSockets. It is a subscription product, not a free public dump.
 
 A possible non-commercial research route exists under the SEBI/NSE research-data framework and the NSE Data Room, but eligibility and the treatment of the TBT subset must be clarified. No application has been submitted and no data has been purchased.
 
@@ -65,7 +65,7 @@ NSE Historical Order & Trade specification version 1.18, dated 18 May 2026, desc
 - full order files made available after 90 calendar days;
 - full trade files made available after 30 calendar days.
 
-This is strong evidence that NSE offers a structured, deterministic-parsing-oriented historical order/trade dataset for offline research. It is still a subscription product; the current NSE EOD/historical-data page directs prospective customers to the data subscription channel. This record does not assume historical 2023 files are included in any particular subscription, nor infer the exact coverage period or price.
+This is evidence that NSE offers a structured historical order/trade dataset for offline research. Deterministic event ordering is not established by the public file layouts: no per-record sequence field or explicit tie-order guarantee appears in the reviewed v1.11 or v1.18 documents. It is still a subscription product; the current NSE EOD/historical-data page directs prospective customers to the data subscription channel. This record does not assume historical 2023 files are included in any particular subscription, nor infer the exact coverage period or price.
 
 **Research implication:** compare the historical full-data product with MTBT multicast before designing a replay pipeline. The historical file product may avoid the need to capture and recover live UDP sessions, while retaining per-order event history. Availability windows, segment coverage, corrections, identifier semantics and licensed use still require confirmation.
 
@@ -97,8 +97,8 @@ The findings support a stream-aware event-sourcing design as a research candidat
 
 1. Preserve raw source messages/files immutably with capture provenance, segment, trading date, protocol/schema version, stream, event time, receipt time and integrity checksum.
 2. Load the contract/security master applicable to the exact trading date before interpreting tokens. Preserve historical mappings; do not resolve old tokens using today's instrument master.
-3. Reconstruct each stream in its own ordered event domain. Do not invent a global sequence across independent streams.
-4. Detect duplicates and sequence gaps explicitly. A gap puts the affected book into an uncertain state until recovery is proven.
+3. For MTBT, use the authorized stream-local sequence semantics. For historical files, preserve original file and row order but do not call it exchange sequence until NSE confirms that guarantee. Do not invent a global sequence across independent streams.
+4. For MTBT, detect duplicates and sequence gaps explicitly. For historical files without per-record sequence numbers, timestamps alone cannot prove gap-free completeness; record this limitation and avoid an unqualified deterministic-replay claim.
 5. Apply recovered records in the correct sequence and retain the distinction between live-feed and recovery-feed provenance.
 6. Use an order-book snapshot as a replay rebase only when its as-of boundary/watermark is verified against the corresponding event sequence. The public 2023 circular establishes the 30-second snapshot service but does not publish enough schema to establish this boundary for the 2023 implementation.
 7. Do not silently repair unknown order references, missing amendments, unobserved order classes or trade/cancel corrections. Preserve an explicit unknown/degraded state.
@@ -118,6 +118,8 @@ The findings support a stream-aware event-sourcing design as a research candidat
 - Historical masters: replay uses the master file for the historical trading date, not a current contract master.
 - Segment/schema variation: CM and FO use the correct pinned protocol/data layout.
 - Full historical file replay: compare resulting order/trade state and fill outputs with the source dataset's documented event semantics.
+- Equal-jiffy events: prove whether original row order is authoritative; otherwise mark ordering ambiguity instead of applying a synthetic tie-breaker.
+- File delivery integrity: verify each trigger-file MD5 and byte count, then separately assess whether the dataset is complete at the event level.
 
 These acceptance tests are proposed research gates. No code, fixtures or benchmark results have been produced.
 
@@ -125,12 +127,14 @@ These acceptance tests are proposed research gates. No code, fixtures or benchma
 
 - **ACCEPT:** the January 2023 public circular confirms MTBT stream infrastructure for both CM and FO.
 - **ACCEPT:** tick recovery and order-book snapshot recovery existed in 2023; they must be modeled as distinct recovery mechanisms.
-- **ACCEPT:** full historical Order & Trade data is a strong candidate for offline deterministic replay and is more promising than trying to backfill years of history from retail WebSockets.
+- **ACCEPT:** full historical Order & Trade data is a strong candidate for offline order-event replay; deterministic event ordering remains unproven.
 - **ACCEPT WITH LIMITATION:** public 2023 information does not establish the exact F&O protocol revision or snapshot-watermark semantics.
 - **ACCEPT WITH LIMITATION:** the current historical order/trade product is not assumed free; no purchase is approved.
 - **INVESTIGATE:** whether an independent AlgoX research proposal can be accepted by NSE's Data Room / EPR route.
 - **INVESTIGATE:** whether a small first-basket TBT dataset can be supplied inside the SEBI 2 GB/year free allowance and what the six-month restriction means in practice.
 - **INVESTIGATE:** exact 2023 FO protocol revision and authorized snapshot message semantics.
+- **INVESTIGATE:** whether historical file row order preserves exchange event order, especially for events sharing the same jiffy; trigger-file MD5 and byte size validate file delivery, not event sequence.
+- **INVESTIGATE:** reconcile historical FAO quantity units: the 2023–2025 research layouts say underlying shares, while the 2026 v1.18 interpretation section says derivative volumes are contract units.
 - **DEFER:** parser design, event-replay implementation, matching-engine integration and any execution changes until authorized sample data and exact schemas are available.
 
 ## 9. Next research sequence
@@ -151,6 +155,11 @@ These acceptance tests are proposed research gates. No code, fixtures or benchma
 - NSE current member Trading Protocols catalogue: https://www.nseindia.com/static/trade/platform-services-neat-trading-system-protocols
 
 ### NSE historical data
+- NSE Historical Research Data Layout v1.10, 27 July 2022: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_data_layout_1.10_0.pdf
+- NSE Historical Research Data Layout v1.11, 15 December 2023: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_data_layout_1.11_0.pdf
+- NSE Historical Research Data Layout v1.12, 6 June 2024: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_data_layout_1.12.pdf
+- NSE Historical Data Order & Trade Specification v1.14, 13 August 2025: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Hist_Order_Trade_Data_1.14.pdf
+- NSE Historical Data Order & Trade Specification v1.15, 8 September 2025: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/NSE_Hist_Order_Trade_Data_1.15.pdf
 - NSE Historical Order & Trade Specification v1.18, 18 May 2026 (Non-Confidential): https://nsearchives.nseindia.com/web/mediaattachment/2026-05/NSE_Hist_Order_Trade_Data_1.18_20260518122214.pdf
 - NSE Paid EOD / Historical Data page: https://www.nseindia.com/static/market-data/eod-historical-data-subscription
 - NSE Paid Real-Time Data page: https://www.nseindia.com/static/market-data/real-time-data-subscription
@@ -167,3 +176,53 @@ These acceptance tests are proposed research gates. No code, fixtures or benchma
 This is a research synthesis, not a source-closed reverse-engineering report. The exact 2023 FO member protocol and detailed member-only packet/snapshot schemas remain unverified in an authorized, date-pinned source. Current member protocol documents are marked confidential/proprietary; this public record does not reproduce their schemas, connection details or access material. Historical claims must be tied to the correct segment, publication date and protocol revision.
 
 No code was written, no broker/feed connection was initiated, no paid data was ordered, no application was sent, no live/paper execution behavior was changed, and main was not modified.
+
+
+## 10. Addendum — historical research-file schema and replay limitations (2026-11-08)
+
+### 10.1 Exact 2023 research-data layout
+
+The archived NSE Historical Data Orders and Trade Layout v1.11 is dated 15 December 2023. Its revision history records v1.10 dated 27 July 2022 and v1.11 dated 15 December 2023. The 2023 v1.11 change list adds the commodity derivatives segment and revises limit-price-indicator remarks for FAO/CD; it does not describe a new per-event sequence field.
+
+This creates a practical date boundary for research-file parsers:
+- 1 January to 14 December 2023: v1.10 is the latest listed layout before the 15 December 2023 revision.
+- 15 December 2023 onward: v1.11 is the listed layout.
+- Do not identify a schema by version number alone. NSE's archive also contains a separate document labelled v1.11 dated 20 June 2022 with different content/segment scope. Pin the exact document URL, date and segment.
+
+The 2023 v1.11 layout identifies CM/FAO orders and trades as Research Data and reports all order/trade ticks. Order records include order number, timestamp in jiffies, side and activity type (entry, cancellation or modification). Trade records include buy and sell order-number references. FAO order records carry market/limit, stop-loss, IOC and spread/combination indicators. This supports order-level reconstruction research, but does not establish exact event ordering.
+
+### 10.2 No documented event sequence in historical file records
+
+The reviewed v1.11 and current v1.18 public record layouts do not include a per-event sequence-number field and do not state an explicit tie-order guarantee for events sharing the same timestamp. The timestamp is expressed in jiffies, with 65,536 jiffies per second. Therefore:
+- preserve exact source file order and row order;
+- test whether that row order is guaranteed to preserve exchange event order;
+- do not invent a sequence by sorting timestamps and order IDs;
+- if equal-timestamp ordering cannot be verified, mark that replay interval as ambiguous rather than claiming deterministic reconstruction.
+
+The v1.11 trigger-file mechanism gives a per-file MD5 value and byte size. This can validate that the downloaded file matches its trigger record, but it does not establish event-level completeness or the absence of missing sequence intervals.
+
+FAO order/trade data is split across multiple files by stream, and the layout states that contracts do not overlap between the files. Preserve stream/file identity; do not merge file streams into a fictional global sequence.
+
+### 10.3 F&O quantity semantics are version-sensitive
+
+The 2023 v1.11 FAO order and trade descriptions say volume/transaction quantity represents underlying shares, not number of contracts. The archived v1.12 (June 2024), v1.14 (August 2025) and v1.15 (September 2025) descriptions continue to state shares for FAO order/trade volume.
+
+The current v1.18 (May 2026) adds an interpretation section stating that derivative volume fields are in contract units and conversion to underlying quantity requires the applicable lot size from the contract master. Its revision history does not explicitly identify a separate FAO quantity-unit change between v1.15 and v1.18.
+
+This is a material specification inconsistency or semantic correction. For a 2023 study, use the 2023 v1.11 wording as the historical specification baseline, then validate against actual sample rows and contract lot sizes. For current files, use v1.18 only after reconciling the discrepancy. Never apply today's unit interpretation backwards without verification.
+
+### 10.4 Official sample files and inspection limitation
+
+NSE's current historical-data page links separate sample ZIPs:
+- CM: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Sample_CMsegment.zip
+- FO: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Sample_FOsegment.zip
+
+The page links are public, but the research environment could not retrieve the ZIP contents. Therefore these files have **not** been inspected, and no claim is made about their internal record order, actual file version or licensing suitability. They appear on the current paid historical-data product page and must not be assumed to be a 2023 Research Data sample.
+
+### 10.5 Research-data eligibility and no-cost routes
+
+The SEBI 2024 policy specifies up to 2 GB per researcher per year free for qualifying first-basket voluminous data when no extra computation is required. NSE's data list puts historical tick-by-tick order/trade data without client and broker information in the voluminous category and carries a six-month lookback note. NSE's current Data for Research page restricts that route to academic and non-commercial use. Eligibility, the exact lookback and whether a limited TBT sample fits the free allowance require official clarification.
+
+NSE's Data Room is a separate, time-bound, approval-based route with no monetary consideration and cloud-hosted access. It may be worth screening for a research proposal but is not a guaranteed local download or an entitlement for a private/commercial AlgoX project.
+
+No sample ZIP was downloaded, no application was submitted and no paid data was purchased.
