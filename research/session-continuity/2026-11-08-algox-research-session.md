@@ -673,3 +673,28 @@ PX-025 now contains **235 normative requirements and 430 proposed acceptance sce
 No historical order book/depth, fee/tax invoice, settlement file or backtest was downloaded/run. PX-040 defines requirements and source-backed controls; it does not claim a calibrated execution model or all-in broker fee schedule.
 
 No broker API, market-feed subscription, live order, code implementation, paid service, PR or merge to main was used.
+
+
+## 30. Backtest validity, leakage prevention and statistical robustness (2026-11-08)
+
+PX-2026-041 defines AlgoX's internal research validation protocol and separates it from external PaRRVA verification.
+
+### Validation findings
+
+- **Chronological testing:** training, validation and final OOS periods must be ordered and immutable. Walk-forward folds simulate deployment; the final holdout is consumed once after results influence design.
+- **Fold-local processing:** normalisation, imputation, feature selection, calibration and model fit must use training data only.
+- **Overlapping labels:** preserve feature time and label start/end; purge train labels whose information intervals overlap test labels. Add a justified embargo where serial dependence/label construction requires it.
+- **Selection bias:** log all trials, parameter sets, feature variants and manual/LLM-generated changes. PBO/CSCV uses the full candidate return matrix; DSR records trial count and non-normality; White Reality Check addresses a family of tested rules. These are diagnostics, not replacements for chronological OOS.
+- **Statistical reporting:** include net/gross returns, Sharpe/Sortino assumptions, drawdown, tail loss, turnover, capacity, margin use, costs, benchmark and fold dispersion. Account for serial correlation, non-normality and effective observations.
+- **PaRRVA:** SEBI operationalised PaRRVA from 4 May 2026, with CARE Ratings as PaRRVA and NSE as PDC. SEBI's 2025 framework requires holistic presentation, disallows selective winning-algo-only claims and arbitrary favourable periods, and includes disclaimers. This does not make private AlgoX research PaRRVA verified.
+- The April 2026 interim pre-PaRRVA communication dates for IAs/RAs are entity-specific; do not generalize them to all broker/Algo-provider categories.
+
+### Requirements and tests
+
+PX-025 now contains **255 normative requirements and 460 proposed acceptance scenarios**:
+- R-236–R-255 cover predeclared research hypotheses, immutable chronological splits, one-use holdout, fold-local transforms, nested walk-forward, label intervals, purging, embargo, full trial registry, PBO/CSCV, DSR, family-wide bootstrap, dependent-return inference, complete performance panel, sample adequacy, robustness, benchmark, adaptive trial history, PaRRVA status and full disclosure context.
+- AT-431–AT-460 cover random splits, full-sample preprocessing leakage, OOS feature selection, overlapping labels, embargo, reused holdout, chronological fold order, nested tuning, rolling retraining, incomplete trial registry, manual/LLM variants, invalid PBO, mismatched CSCV rows, incomplete DSR, trial dependence, post-selected Reality Check family, IID bootstrap, Sharpe annualisation, drawdowns, unstable folds, overlapping trades, low power, TRI mismatch, reused final OOS, current constituents, corrected-data lookahead, net-cost failure, false PaRRVA status and selective public claims.
+
+All are proposed acceptance cases; no strategy performance or statistical test was run.
+
+No PaRRVA submission, performance claim, broker connection, code implementation, paid service, PR or merge to main was made.
