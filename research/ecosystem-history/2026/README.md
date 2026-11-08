@@ -29,6 +29,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-021](PX-2026-021-open-weight-model-capabilities-october-2026.md) | Holo4, Beam and Mistral Large 4 |
 | [PX-2026-022](PX-2026-022-indian-market-fill-realism-and-market-impact.md) | Indian-market fill realism, queue reconstruction and market impact |
 | [PX-2026-023](PX-2026-023-nse-feed-protocol-and-deterministic-replay.md) | NSE feed protocol, historical order data and deterministic replay feasibility |
+| [PX-2026-024](PX-2026-024-broker-disconnect-order-recovery-and-reconciliation.md) | Broker disconnect, ambiguous order outcomes and reconciliation |
 
 ## Scope and evidence policy
 
