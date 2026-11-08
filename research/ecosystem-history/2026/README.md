@@ -42,6 +42,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-034](PX-2026-034-exchange-contract-master-freeze-limits-and-broker-order-validation.md) | Exchange contract master, freeze limits and broker order validation |
 | [PX-2026-035](PX-2026-035-nse-contract-file-ingestion-schema-variants-and-integrity.md) | NSE contract-file ingestion, schema variants and integrity |
 | [PX-2026-036](PX-2026-036-cross-provider-instrument-identity-and-effective-dated-contract-mapping.md) | Cross-provider instrument identity and effective-dated contract mapping |
+| [PX-2026-037](PX-2026-037-market-data-identity-timestamps-freshness-and-continuity.md) | Market-data identity, timestamp semantics, freshness and historical continuity |
 
 ## Scope and evidence policy
 
