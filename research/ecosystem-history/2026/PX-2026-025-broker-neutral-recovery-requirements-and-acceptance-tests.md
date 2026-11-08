@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **255 normative requirements (R-001–R-255) and 460 proposed acceptance scenarios (AT-001–AT-460)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **275 normative requirements (R-001–R-275) and 490 proposed acceptance scenarios (AT-001–AT-490)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1701,3 +1701,138 @@ PX-025 now contains **255 normative requirements (R-001–R-255) and 460 propose
 ### PaRRVA scope note
 
 SEBI's PaRRVA framework and its 2026 operationalisation are a separate external verification/disclosure process. Public/regulated performance claims must be checked against the exact applicable entity category, broker/Algo-provider arrangement and current circulars. Internal research performance, simulated backtest metrics, broker-recorded actual returns and PaRRVA-verified outputs MUST remain distinctly labelled.
+
+
+## 28. Simulation semantics, paper/live parity and deterministic replay (2026-11-08)
+
+PX-2026-042 compares established backtest/dry-run/live execution patterns and defines AlgoX's mode contract. The target is **semantic parity, not identical fills**: strategy intent, risk admission, order lifecycle and accounting rules are shared, while fill evidence, timing, accounts and external execution are mode-specific.
+
+### Additional normative requirements
+
+### R-256 — Operating mode is explicit and typed
+
+Every strategy run, intent, order, account, fill and ledger event MUST carry an explicit BACKTEST, PAPER, SHADOW or LIVE mode identity and run/mode epoch. A missing or conflicting mode MUST fail closed.
+
+### R-257 — Strategy and domain risk semantics are shared across modes
+
+All modes MUST invoke the same canonical strategy-intent contract, instrument identity, projected-exposure calculation, independent risk-admission gates and order/portfolio state-transition rules. Mode-specific adapters may supply different evidence/execution results but MUST NOT silently omit a mandatory domain risk gate.
+
+### R-258 — Fill and submission origins are mode-specific
+
+Backtest, paper and shadow-generated order/fill events MUST have explicit simulated origin types. They MUST NOT be represented as broker acknowledgements, exchange orders or actual trades. Live fills MUST be sourced from broker/exchange evidence and reconciled under PX-024–PX-028.
+
+### R-259 — Backtest fill assumptions are explicit and versioned
+
+Every backtest MUST pin its fill model, data resolution, order-arrival timing, price/quantity availability, partial-fill policy, stale-price threshold, session restrictions, slippage and fee models. An “all orders fill” assumption MUST NOT be the implicit default or be presented as realistic without explicit qualification.
+
+### R-260 — Paper and shadow modes cannot submit live orders
+
+Paper and shadow runtimes MUST NOT possess a callable live order-placement, modification or cancellation capability. A mode label or UI toggle alone is insufficient; backend capability routing MUST enforce the restriction. Adapter failure MUST NOT fall back from paper to live.
+
+### R-261 — Shadow mode does not create exchange execution claims
+
+Shadow mode MUST record hypothetical intents/admission outcomes and, if configured, estimated fills as hypothetical. It MUST NOT create a broker dispatch, exchange acknowledgement, actual fill or live portfolio mutation. Observed external account events MUST remain external observations.
+
+### R-262 — Live order lifecycle is asynchronous
+
+Live broker dispatch, acknowledgement, partial/full fill, rejection, cancellation and modification MUST be processed as asynchronous external observations. Strategy code MUST NOT assume that a submit call implies acceptance or that a modify/cancel request takes effect before a broker event confirms it.
+
+### R-263 — One shared economic event model preserves mode provenance
+
+The portfolio/accounting layer MAY consume normalized execution/settlement event contracts across modes, but MUST retain the original event type, mode, adapter/fill-model origin and source references. Simulated, paper and live events MUST remain distinguishable and MUST NOT contaminate one another's account namespace.
+
+### R-264 — Replay uses a virtual clock and deterministic scheduler
+
+Backtests MUST use an injected virtual clock and deterministic event scheduler for data, timers, signals, order arrivals, fills, expiry and settlement. The same pinned inputs/configuration/seed/scheduler version MUST reproduce the same simulated event sequence and domain decisions.
+
+### R-265 — Live event replay preserves observed arrival order and uncertainty
+
+A replay of captured paper/shadow/live events MUST preserve recorded receive/processing sequence and connection epoch. It MUST NOT sort solely by provider event time and claim exchange causal ordering when no provider sequence contract exists. Gap intervals MUST remain UNKNOWN as specified in PX-027/PX-037.
+
+### R-266 — Mode transitions require an isolated state boundary
+
+A mode transition MUST stop new intents, resolve/preserve pending activity, create a new mode epoch, bind the correct account/adapter, run startup reconciliation and record a new manifest. Simulated/paper orders and balances MUST NOT be rehydrated into live; live open orders MUST NOT be silently cloned into virtual accounts.
+
+### R-267 — Live credentials and adapter capabilities are isolated
+
+Broker credentials, sessions and live order capabilities MUST be injected only into an explicitly authorized LIVE runtime. BACKTEST/PAPER/SHADOW processes MUST NOT receive live credentials or a callable live adapter. Missing or ambiguous live account/capability MUST block LIVE.
+
+### R-268 — Paper account balances and fills are virtual and labelled
+
+Paper account funds, positions, collateral, fees and fills MUST be separately namespaced, explicitly virtual and derived from the paper model. A paper balance or fill MUST NOT be shown as actual broker account evidence or actual client performance.
+
+### R-269 — Market-data and order-processing latency are measured separately
+
+Each mode MUST preserve market event time, local receive time, strategy decision time, dispatch time, broker acknowledgement time and fill time where available. Backtest latency is a declared simulation assumption; paper/shadow/live latency is measured. The same timestamp MUST NOT be reused for different stages.
+
+### R-270 — Shared risk gates use mode-appropriate evidence without bypass
+
+All mandatory PX-033 risk gates MUST run in every mode. If a gate's live evidence is unavailable in backtest/paper, the result MUST be simulated from pinned effective data or be UNKNOWN/not simulated under an explicit policy. The engine MUST NOT turn an unavailable gate into PASS or skip it silently.
+
+### R-271 — Backtest/paper/live drift is measured and attributable
+
+A parity report MUST compare signals, canonical instruments, admission results, request intents, lifecycle transitions, fill quantities/prices, residuals, positions, cash, costs and settlement. Differences MUST be attributed to data, timing, model, provider, broker or market causes where evidence allows. It MUST NOT require identical fills across modes.
+
+### R-272 — Mode-specific fill/fee/margin/settlement models are pinned
+
+Each run MUST preserve the exact fill, fee, slippage, margin, funding, risk and settlement model version used for that mode. A paper or live model MUST NOT silently inherit a backtest assumption, and a broker-reported fee/fill MUST not be overwritten by a simulated model.
+
+### R-273 — Partial fills and residual orders behave consistently in domain accounting
+
+All modes MUST use the same order residual, cumulative filled quantity, average fill price and position/ledger roll-forward invariants. The source of each fill may differ, but the engine MUST NOT assume complete fills in one mode while allowing partial fills in another without an explicitly versioned model difference.
+
+### R-274 — Event-driven callbacks and bar callbacks have explicit ordering
+
+The scheduler MUST define how market-data events, broker/order events, timers, bar closes and strategy callbacks are sequenced. Live fills arriving between bars MUST update domain state at the recorded event boundary; a later bar callback MUST not use stale pre-fill portfolio state.
+
+### R-275 — Comparative run manifest is immutable and mode-scoped
+
+Every parity/comparison run MUST pin strategy hash/version, mode, run epoch, canonical data manifest, contract crosswalk, risk policy, fill/fee/margin/settlement model, clock/scheduler, random seed, account namespace and source event logs. The comparison MUST identify which dimensions are directly comparable and which are intentionally mode-specific.
+
+### Additional deterministic acceptance scenarios
+
+These extend AT-001 through AT-460. Use deterministic historical events, fake market feeds, virtual accounts, fake brokers, fake clocks and explicit mode capabilities only.
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-461 | Same strategy emits an intent in BACKTEST, PAPER and LIVE against equivalent controlled inputs | Identical canonical intent and domain gate evaluation where required evidence/policy are equal; execution outputs remain mode-specific |
+| AT-462 | BACKTEST creates a full simulated fill | Mark event SIMULATED_BACKTEST; no broker/exchange acknowledgement or live account mutation |
+| AT-463 | PAPER creates a virtual fill from current feed | Mark PAPER origin and virtual account; no actual broker order or trade |
+| AT-464 | SHADOW emits an intended order and estimated fill | Persist hypothetical event only; live adapter capability is absent and no external order occurs |
+| AT-465 | PAPER adapter fails or is unavailable | Return paper error/UNKNOWN; must not fall back to the live broker adapter |
+| AT-466 | Runtime configuration omits or conflicts on mode | Reject startup/admission; no default to LIVE or BACKTEST |
+| AT-467 | User changes mode while orders/intents remain pending | Stop new intents; preserve/reconcile pending old-mode state; create a new mode epoch; do not migrate pending orders across modes |
+| AT-468 | PAPER virtual balance is positive while actual broker balance is zero | Keep separate accounts and balances; no claim of real available funds |
+| AT-469 | Actual live broker order is open while the paper account has a hypothetical fill | Keep external live order and virtual paper position separate; no ledger cross-contamination |
+| AT-470 | Backtest is replayed twice with the same data, config, seed and scheduler version | Produce identical simulated event sequence, decisions and ledger outputs |
+| AT-471 | Backtest fill model uses minute bars while strategy signal occurs at bar close | Follow declared arrival/fill timing; do not use same close implicitly without policy |
+| AT-472 | Paper feed arrives asynchronously while strategy processes a completed candle | Record event ordering/decision latency and evaluate against latest valid state under declared scheduling policy |
+| AT-473 | Live broker reports a partial fill between two market-data bars | Apply the fill immediately to live order/portfolio state; next strategy callback sees updated quantity |
+| AT-474 | Broker acknowledgement is delayed after live dispatch | Preserve DISPATCHED/UNKNOWN until broker evidence; no synchronous accepted state assumption |
+| AT-475 | Live order fills before a pending modify reaches the broker | Preserve actual fill and treat modify outcome as broker-reported; do not apply stale intended modification |
+| AT-476 | Backtest default fill model assumes full fill but scenario has insufficient liquidity | Require explicit assumption or custom partial fill; flag fidelity limitation rather than silently claiming full executable volume |
+| AT-477 | Paper limit order price is touched but no eligible volume is available | Leave order unfilled/working or expired under paper fill policy; do not guarantee fill from touch |
+| AT-478 | Paper market data is fresh but fill price is delayed by local processing load | Preserve decision/submit/fill timestamps and measure slippage/latency; no fill at signal timestamp by default |
+| AT-479 | Risk gate input is UNKNOWN in all modes | Block risk-increasing action in every mode; simulation does not convert UNKNOWN to PASS |
+| AT-480 | A mandatory live-only evidence source is unavailable in BACKTEST | Use a pinned deterministic simulated evidence model or return explicit UNKNOWN/not-simulated; do not skip the gate |
+| AT-481 | Same order intent is admitted in BACKTEST and rejected in LIVE due to actual broker account permission | Preserve identical domain intent but show broker/account-specific live validation difference; no forced parity |
+| AT-482 | Same fee model is configured for PAPER and BACKTEST but live contract note reports a different broker fee | Preserve model and actual fee; record fee drift rather than overwrite broker evidence |
+| AT-483 | A fill event is replayed from a captured live log with recorded receive order | Reproduce recorded observation order; do not re-sort solely by exchange timestamp |
+| AT-484 | Two captured events have same event timestamp but different receive sequence | Preserve recorded sequence and both events; no timestamp-only deduplication |
+| AT-485 | A stream gap occurs in captured SHADOW events without replay cursor | Replayed event history remains UNKNOWN across the gap; current-state snapshot does not create missing events |
+| AT-486 | Randomised paper fill model is replayed with the same seed and event inputs | Produce the same simulated fills; seed and model version are present in manifest |
+| AT-487 | Randomised fill model is replayed with a different seed | Mark run as a distinct simulation; do not compare it as deterministic replay of the original |
+| AT-488 | Live account startup finds open orders not present in the local previous process state | Reconcile broker open orders before admission; do not apply backtest/paper startup assumptions |
+| AT-489 | Simulated settlement/expiry event occurs in BACKTEST while actual live account has a separate external position | Keep simulation and live event streams/account ledgers distinct; no cross-mode settlement mutation |
+| AT-490 | Backtest and PAPER/SHADOW/LIVE parity report is generated | Include common semantic comparisons, mode-specific fill/timing/cost differences, source/model versions and explicit non-equivalence reasons |
+
+PX-025 now contains **275 normative requirements (R-001–R-275) and 490 proposed acceptance scenarios (AT-001–AT-490)**. These are proposed tests only; no engine, broker, paper account, live account, strategy or test was executed.
+
+### Mode and execution boundaries
+
+- BACKTEST uses historical data, virtual clock and a pinned simulated fill/cost/risk/settlement model.
+- PAPER uses current market data with virtual orders, fills and balances; it does not call the live broker order adapter.
+- SHADOW records live-like signals/admission decisions without a submit capability; any fill remains hypothetical.
+- LIVE uses broker dispatch and asynchronous broker/exchange/account evidence.
+- A simulated or paper fill is never an actual exchange execution. A live broker acknowledgement is not itself a fill.
+- Paper/shadow runtimes must not possess a live order-placement/modification/cancellation capability; mode changes require an explicit epoch boundary and reconciliation.
