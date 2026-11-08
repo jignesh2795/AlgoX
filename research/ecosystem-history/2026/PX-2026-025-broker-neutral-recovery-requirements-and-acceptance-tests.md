@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **101 normative requirements (R-001–R-101) and 180 proposed acceptance scenarios (AT-001–AT-180)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **118 normative requirements (R-001–R-118) and 220 proposed acceptance scenarios (AT-001–AT-220)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -903,3 +903,90 @@ PX-2026-032 adds the current FutEq-based single-stock MWPL/ban process, entity p
 | AT-180 | Position-limit alert exists while SPAN margin is sufficient; or margin shortfall exists while position limit is within bounds | Preserve the two separate risk dimensions and trigger only the rule-specific control |
 
 PX-025 now contains **101 normative requirements (R-001–R-101) and 180 proposed acceptance scenarios (AT-001–AT-180)**. These are proposed deterministic scenarios, not executed tests.
+
+## 19. Order admission, exposure classification and independent risk gates (2026-11-08)
+
+PX-2026-033 composes the broker recovery, margin, position limit, MWPL ban, expiry/settlement and member-risk controls into a single admission policy model. See [PX-2026-033 — Order admission, exposure classification and independent risk gates](PX-2026-033-order-admission-independent-risk-gates-and-exposure-classification.md).
+
+### Additional normative requirements
+
+**R-102 — Admission is a conjunction of independent mandatory gates.** A future order-admission service MUST evaluate every applicable market, contract, command-recovery, exposure, MWPL/ban, entity-limit, index intraday, margin/collection, expiry/settlement and provider-validation gate. A PASS in one dimension MUST NOT compensate for a FAIL or UNKNOWN in another dimension.
+
+**R-103 — Projected exposure includes positions, working orders and unresolved attempts.** Projected exposure MUST include broker-observed positions, unique reconciled trades, working-order residuals, partial fills, child orders and any possibly dispatched command whose outcome is unresolved. Opposing working orders MUST NOT be netted away unless an authoritative provider/exchange rule proves such netting is valid.
+
+**R-104 — Action classification is based on projected exposure, not order-side text.** PLACE, OFFSET, REDUCE, CLOSE, MODIFY, CANCEL and REPLACE MUST be classified using the projected post-action portfolio across each relevant exposure/risk dimension. A buy/sell string or user-supplied reduce-only label MUST NOT by itself establish that the action reduces exposure.
+
+**R-105 — UNKNOWN blocks exposure-increasing admission.** If any mandatory identity, contract, position, ban, entity limit, delta, margin/collection, expiry/settlement or prior-command input is UNKNOWN, the system MUST NOT admit an action that could increase exposure. It MUST retain the reason and evidence needed to resolve the state.
+
+**R-106 — Cancel, modify and replace are distinct commands.** The system MUST retain independent command/attempt identity and outcome for cancellation, modification and replacement. A cancel request MUST NOT be treated as completed cancellation; a replacement MUST NOT be assumed atomic unless the provider contract explicitly establishes it; an unknown outcome MUST be reconciled before issuing a conflicting command.
+
+**R-107 — Ban-period reduction requires rule-specific proof.** During a single-stock MWPL ban, the system MUST admit only actions that meet the effective source's offset/reduction rule, including FutEq, Day 1 baseline, current delta and sign constraints. It MUST NOT classify an order as permitted merely because it is opposite-side or labelled reduce-only.
+
+**R-108 — Entity-limit admission uses complete in-scope aggregation.** Projected position-limit evaluation MUST use the relevant client/entity/TM/TM-proprietary/FPI/MF category and all required member/exchange positions. If the rule requires cross-member aggregation and the system has only one broker-local subtotal, the gate MUST be UNKNOWN rather than PASS.
+
+**R-109 — Margin admission requires collection evidence, not a calculator.** For any rule requiring upfront client margin, the system MUST independently verify the applicable requirement and actual eligible client cash/collateral collection. Margin-calculator output or available-balance snapshot alone MUST NOT clear the gate.
+
+**R-110 — Hedge and basket changes invalidate prior margin/risk approval.** Any change to existing positions, working orders, basket legs, option premium, delta, expiry, corporate action or hedge eligibility MUST trigger recalculation of every affected gate. A previous per-order/basket calculation MUST NOT be reused after the supporting portfolio or parameter set changes.
+
+**R-111 — Expiry and settlement risk is part of admission.** Before admitting an action that can create or increase an expiring derivative position, the system MUST evaluate contract-specific expiry, exercise style, cash/physical settlement mode, delivery/assignment margin, settlement calendar and available delivery capacity. Missing contract/settlement data MUST block exposure increase.
+
+**R-112 — Compound and sliced orders require parent and child admission.** A group request MUST be checked at parent aggregate scope and each child/leg scope. The system MUST preserve partial success/failure and child-set completeness. A parent-level margin result or group approval MUST NOT automatically authorize every child.
+
+**R-113 — Provider/exchange validation is distinct from domain risk approval.** Order price, quantity, tick, freeze, order variety, product, market session and provider-specific request validation MUST be evaluated separately from market/portfolio risk gates. A domain-level ALLOW MUST NOT be represented as broker acceptance or proof that the request will pass provider validation.
+
+**R-114 — Warning signals are not automatically hard blocks.** The system MUST distinguish advisory alerts from regulatory/clearing hard restrictions. A warning such as a market-wide OI alert or TM-level PRISM utilization message MUST NOT be converted into a retail-client ban unless an applicable source rule establishes that effect. Hard restrictions MUST NOT be downgraded to warnings.
+
+**R-115 — Admission snapshots are immutable and time-bounded.** Every admission decision MUST preserve the exact gate outcomes, projected portfolio, data source/hash, effective rule/parameter versions, timestamps, policy/adapter versions and invalidation conditions. The decision MUST be revalidated immediately before dispatch if any material input can change.
+
+**R-116 — Gate outcomes are individually inspectable.** The system MUST preserve each applicable gate as PASS, FAIL, UNKNOWN, ADVISORY or NOT_APPLICABLE with its scope, reason and evidence references. A summary ALLOW/DENY/REDUCE_ONLY result MUST NOT erase gate-level results.
+
+**R-117 — Admission, dispatch, acknowledgement and execution are separate evidence events.** The system MUST distinguish risk decision, transport dispatch, broker acknowledgement, exchange acknowledgement, trade execution and account/position reconciliation. A successful admission decision MUST NOT be recorded as a successful order submission or fill.
+
+**R-118 — Hard regulatory restrictions cannot be bypassed by a local override.** Any manual/emergency override MUST be scoped, authenticated, time-bounded and auditable. It MUST NOT override statutory/exchange/clearing hard restrictions, a market-wide ban, missing client collection required upfront, or an unresolved command that could create duplicate exposure. Where an exception is legally/contractually permitted, its governing authority and evidence MUST be explicit.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-181 | Every applicable gate passes and all evidence is fresh | ALLOW with a complete immutable gate trace; no claim of broker acceptance |
+| AT-182 | Position-limit gate FAILS while margin gate PASSes | DENY; margin sufficiency cannot compensate for position-limit breach |
+| AT-183 | Margin/collection gate FAILS while entity position-limit gate PASSes | DENY; position-limit headroom cannot compensate for short collection |
+| AT-184 | A mandatory gate lacks current source data | UNKNOWN_BLOCKED; no risk-increasing dispatch |
+| AT-185 | A gate is genuinely not applicable to the instrument/product/action | Record NOT_APPLICABLE with the rule-based reason; do not silently omit the gate |
+| AT-186 | An order is labelled SELL but projected delta/gross/physical exposure increases | Classify by projected exposure; do not accept a reduce-only label |
+| AT-187 | An opposite-side order decreases signed delta but increases gross short, margin or delivery obligation | Preserve each dimension; apply all relevant gates and deny if a hard requirement fails |
+| AT-188 | Existing working orders could fill alongside the candidate order | Include working residuals in projected exposure; do not use position-only subtotal |
+| AT-189 | Two opposing working orders exist without guaranteed atomic/OCO semantics | Do not net them as mutually exclusive; include conservative potential exposure |
+| AT-190 | A previous placement may have reached the broker but acknowledgement was lost | Block duplicate risk-increasing placement; reconcile before any new command |
+| AT-191 | Cancel request times out while the order may still be executable | Keep residual exposure; cancel remains UNKNOWN until broker/order/trade reconciliation |
+| AT-192 | Modify request changes price/quantity/trigger and times out | Preserve old and proposed parameters; reconcile actual broker state before another modification |
+| AT-193 | Replace is attempted before old order cancellation is confirmed | Block unsafe overlap unless a documented provider-atomic replacement contract applies |
+| AT-194 | A reduce-only order during single-stock ban increases FutEq or violates the Day 1 sign rule | DENY; opposite-side label is insufficient |
+| AT-195 | A ban-period offset reduces FutEq using the effective baseline/delta rule | REDUCE_ONLY/ALLOW according to applicable gates; preserve baseline and current delta evidence |
+| AT-196 | Client's broker-local position is within limit but aggregated cross-member position exceeds limit | DENY or UNKNOWN as applicable; do not use broker-local subtotal |
+| AT-197 | Cross-member client position data is unavailable | UNKNOWN_BLOCKED; no false PASS from incomplete identity scope |
+| AT-198 | Basket hedge leg is removed after admission approval but before dispatch | Invalidate snapshot and recompute margin/position/expiry gates |
+| AT-199 | Client has sufficient nominal balance but verified eligible upfront collateral is below requirement | DENY; available funds do not substitute for actual collection |
+| AT-200 | SPAN/ELM and net option premium change after the admission snapshot | Mark approval stale; recalculate before dispatch |
+| AT-201 | Stock derivative will create physical delivery near expiry but contract/lot/settlement data is missing | UNKNOWN_BLOCKED; do not admit exposure increase |
+| AT-202 | Index derivative is cash-settled while stock derivative is physically settled | Apply correct product settlement mode; do not apply one generic expiry gate |
+| AT-203 | A compound order passes parent margin but one child exceeds a position limit | Block the affected child/group as required; parent margin PASS does not authorize that child |
+| AT-204 | Auto-sliced group returns partial success and per-slice errors | Preserve each child result and recompute remaining group exposure; do not report all-success |
+| AT-205 | Group response is lost and only some child orders are discovered | Child-set completeness UNKNOWN; no full group resubmission |
+| AT-206 | Provider accepts a request and returns broker order ID, but exchange order ID is null | Record broker acknowledgement/intermediate state; do not infer exchange acceptance or execution |
+| AT-207 | Broker order reaches OPEN status but no trade record exists | Record open order, not execution; positions/fills remain based on unique trade evidence |
+| AT-208 | A 60% OI alert or 70/80/90% TM PRISM warning is received | Record scoped ADVISORY; do not automatically treat as a retail-client hard block |
+| AT-209 | Effective stock MWPL ban or client position limit is breached | HARD_BLOCK/REDUCE_ONLY as the specific source rule requires; do not downgrade to advisory |
+| AT-210 | Index option expiry-day ASD conditions are met | Apply expiry-day ASD only under the current applicable 2025/122 and NSE implementation rules |
+| AT-211 | Non-expiry-day index intraday snapshot shows a threshold breach but no applicable ASD rule | Record surveillance outcome/advisory according to effective policy; do not apply expiry-day ASD automatically |
+| AT-212 | Admission snapshot uses a delta file or position report that changes before dispatch | Snapshot invalidated; rerun all affected gates |
+| AT-213 | Market/contract session changes to closed/expired/suspended after risk approval | Invalidate admission and reject dispatch under the new state |
+| AT-214 | A partial fill arrives between admission and dispatch of a second related command | Recompute projected positions and all dependent gates before second dispatch |
+| AT-215 | A prior unknown cancellation is resolved as FILLED rather than CANCELLED | Reconcile fill into positions/margin and deny any duplicate replacement |
+| AT-216 | A child leg of a multi-leg order is rejected while another leg is accepted | Preserve unhedged residual risk; re-evaluate exposure and risk controls for the surviving leg |
+| AT-217 | Parent request passes aggregate risk but child order uses a different instrument/expiry/contract master | Re-run child identity, limit, margin and expiry gates independently |
+| AT-218 | Manual override requests permission to breach an active market-wide ban | Reject override; hard regulatory/exchange restriction is non-bypassable |
+| AT-219 | A manual exception is permitted by a documented non-regulatory local policy | Require authorized principal, scope, expiry, reason and audit; do not relax hard source rules |
+| AT-220 | Admission decision is ALLOW but broker submit later times out | Preserve ALLOW + SUBMISSION_UNKNOWN as separate facts; reconcile, do not rewrite the decision as a fill or blindly retry |
+
+PX-025 now contains **118 normative requirements (R-001–R-118) and 220 proposed acceptance scenarios (AT-001–AT-220)**. The new scenarios are not executed tests.
