@@ -596,3 +596,29 @@ PX-025 now contains **178 normative requirements and 340 proposed acceptance sce
 All are proposed tests only. No feed subscription, historical data API request, decoder, tick store or backtest engine was executed.
 
 No credentials, broker API, market-feed connection, order, code implementation, paid service, PR or merge to `main` was used.
+
+
+## 26. Historical price integrity, corporate actions and backtest reproducibility (2026-11-08)
+
+PX-2026-038 audits NSE EOD bhavcopy/UDiFF format history, corporate-action disclosures, cash/F&O historical archives and Price Return versus Total Returns Index conventions.
+
+### Findings
+
+- NSE states legacy CM and F&O bhavcopy CSV/common-bhavcopy CSV reports were discontinued effective 8 July 2024 in favour of the relevant UDiFF Common Bhavcopy Final ZIP.
+- NSE/MSD/74764 (18 June 2026) says .DAT bhavcopy will also be exposed through Extranet in a phased manner from July 2026, with segment dates communicated separately. Older .MS/.MD Extranet reports and related NNF API broadcasts are discontinued effective 12 October 2026.
+- NSE's All Reports page says adjusted 52-week high/low values reflect bonus, consolidation, splits and rights, while actual unadjusted prices must be taken from bhavcopy. Raw market prices and adjusted reference fields are distinct.
+- NSE corporate-action filings expose announcement, ex-date, record date and other terms. These must remain distinct; later event revisions must not be treated as knowledge available before announcement.
+- NSE's derivatives corporate-action methodology adjusts open derivative contract strikes/position/lot at the last cum-date; it is not a generic cash-equity OHLC adjustment formula.
+- NSE Price Index is price-only; TRI includes dividend receipts reinvested on ex-date. Dividend return must not be counted both in adjusted prices/TRI and the portfolio cash ledger.
+- F&O historical contract-wise reports keep Open/High/Low/Close/LTP/Settle Price, contracts, turnover, OI/change-in-OI and underlying value as separate fields. Option premium turnover and notional turnover are different.
+- No daily EOD file, corporate-action data or historical archive was downloaded or parsed in this phase.
+
+### Requirements and tests
+
+PX-025 now contains **197 normative requirements and 370 proposed acceptance scenarios**:
+- R-179–R-197 cover raw/adjusted/settlement/TR price types, EOD format vintage, immutable files, 2024/2026 report migration, correction vintages, dated corporate-action events, no cash/derivative formula confusion, TRI, dividend double counting, F&O price-field separation, dated contract identity, point-in-time universe/index membership, announcement-time lookahead, data gaps, units/turnover, sourced adjustment factors, builder version and complete reproducibility manifest.
+- AT-341–AT-370 cover historical format selection, current legacy-format rejection, .MS/.MD/NNF cutoff, .DAT/UDiFF source separation, raw vs adjusted values, action dates, bonus/split/rights/merger, revised events, TRI, F&O close/LTP/settle, dated contract expiry, survivorship, suspended/delisted securities, correction vintages, lookahead, dividend double count, derivatives adjustment, turnover, zero volume, settlement revisions, old schemas, duplicate rows, mixed vintages and incomplete backtest manifests.
+
+These are proposed acceptance tests only. No historical data files were downloaded and no backtest was run.
+
+No broker/account/market-feed access, member portal login, code implementation, paid service, PR or merge to main was used.
