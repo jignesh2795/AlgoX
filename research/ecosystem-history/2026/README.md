@@ -43,6 +43,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-035](PX-2026-035-nse-contract-file-ingestion-schema-variants-and-integrity.md) | NSE contract-file ingestion, schema variants and integrity |
 | [PX-2026-036](PX-2026-036-cross-provider-instrument-identity-and-effective-dated-contract-mapping.md) | Cross-provider instrument identity and effective-dated contract mapping |
 | [PX-2026-037](PX-2026-037-market-data-time-semantics-feed-integrity-and-contract-continuity.md) | Market-data time semantics, feed integrity and historical contract continuity |
+| [PX-2026-038](PX-2026-038-historical-price-integrity-corporate-actions-and-backtest-reproducibility.md) | Historical price integrity, corporate actions and backtest reproducibility |
 
 ## Scope and evidence policy
 
