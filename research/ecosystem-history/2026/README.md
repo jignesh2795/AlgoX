@@ -37,6 +37,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-029](PX-2026-029-indian-derivatives-expiry-exercise-physical-settlement-and-corporate-actions.md) | Indian derivatives expiry, exercise, physical settlement and corporate actions |
 | [PX-2026-030](PX-2026-030-equity-derivatives-margin-calculation-collection-and-risk-controls.md) | Equity-derivatives margin calculation, collection and risk controls |
 | [PX-2026-031](PX-2026-031-clearing-margin-reports-short-allocation-and-risk-enforcement.md) | Clearing margin reports, short allocation and risk enforcement |
+| [PX-2026-032](PX-2026-032-position-limits-mwpl-ban-period-and-intraday-risk-monitoring.md) | Position limits, MWPL ban period and intraday risk monitoring |
 
 ## Scope and evidence policy
 
