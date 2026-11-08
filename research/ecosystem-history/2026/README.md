@@ -40,6 +40,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-032](PX-2026-032-position-limits-mwpl-ban-period-and-intraday-risk-monitoring.md) | Position limits, MWPL ban period and intraday risk monitoring |
 | [PX-2026-033](PX-2026-033-order-admission-independent-risk-gates-and-exposure-classification.md) | Order admission, exposure classification and independent risk gates |
 | [PX-2026-034](PX-2026-034-exchange-contract-master-freeze-limits-and-broker-order-validation.md) | Exchange contract master, freeze limits and broker order validation |
+| [PX-2026-035](PX-2026-035-nse-contract-file-ingestion-schema-variants-and-integrity.md) | NSE contract-file ingestion, schema variants and integrity |
 
 ## Scope and evidence policy
 
