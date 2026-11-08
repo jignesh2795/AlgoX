@@ -497,4 +497,32 @@ Until answered, preserve each as UNKNOWN and do not promote an undocumented guar
 - **DEFER:** final state enums, schema, persistence technology, retry automation, risk reservation arithmetic and broker adapter interface.
 - **NOT AUTHORIZED:** code changes, broker connections, sandbox/production API calls, real orders, paid services, credentials/IP changes, PR creation or merging to `main`.
 
-**Current outcome:** PX-025 requirements and acceptance criteria are documented. No tests were run because no implementation exists in this scope; all 35 AT cases are specified for a future deterministic fake-provider harness.
+**Current outcome:** PX-025 requirements and acceptance criteria are documented. No tests were run because no implementation exists in this scope; the original 35 cases plus eight provider-specific amendments (43 total) are specified for a future deterministic fake-provider harness.
+
+
+## 12. Provider-specific slicing, batch and correlation amendment (2026-11-08)
+
+PX-2026-026 found that the 30 requirements and 35 initial acceptance scenarios need more precise child-order/group semantics. The provider audit is recorded in [PX-2026-026 — Provider idempotency, request correlation and compound-order recovery audit](PX-2026-026-provider-idempotency-and-compound-order-recovery.md).
+
+### Additional normative requirements
+
+**R-031 — Command group has per-child outcome accounting.** A batch, sliced placement or compound command MUST preserve each documented child/line/slice/leg outcome independently. Successful child IDs, rejected child lines, provider errors and unresolved children MUST remain attributable to the local command/intent.
+
+**R-032 — Correlation uniqueness is scoped to the provider contract.** The adapter MUST record the documented meaning and uniqueness scope of each correlation field. Within-payload uniqueness MUST NOT be generalized into cross-request idempotency. Provider tags, per-line correlation IDs, Dhan correlation IDs, broker order IDs and local command IDs MUST remain distinct.
+
+**R-033 — Child-set completeness is independently reconciled.** If one command may create multiple broker orders, the system MUST record both observed children and whether the full child set is established. An incomplete child set MUST remain unresolved; expected count or group identity MUST NOT be guessed from quantity alone.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-036 | Kite auto-slice returns successful IDs and per-slice errors | Preserve each success and failure independently; classify group as partial |
+| AT-037 | Kite auto-slice acknowledgement is lost and orderbook reveals only some candidate children | Child-set completeness remains UNKNOWN; no full-quantity resubmission |
+| AT-038 | Upstox V3 `slice=true` returns multiple `order_ids` | Preserve every ID as an independent child and reconcile each child's status/trades |
+| AT-039 | Upstox multi-order returns HTTP 207 / `partial_success` | Correlate per-line successes/errors using `correlation_id`; no all-success/all-failure collapse |
+| AT-040 | Upstox multi-order repeats `correlation_id` inside one payload | Model documented whole-payload rejection; do not treat it as cross-request idempotency |
+| AT-041 | Dhan slicing response is lost and public page does not define response shape | Keep group outcome and child-set completeness UNKNOWN until full set is established |
+| AT-042 | Dhan Super Order has entry, target and stop-loss legs | Preserve parent and leg identity/state; do not flatten into one ordinary order |
+| AT-043 | Dhan correlation lookup returns one order after ambiguous sliced request | Treat it as one discovered order only; do not infer every child was found |
+
+The original AT-001 through AT-035 remain unchanged. PX-025 now contains **33 normative requirements and 43 proposed acceptance scenarios**. These tests remain unexecuted; this amendment is documentation only.
