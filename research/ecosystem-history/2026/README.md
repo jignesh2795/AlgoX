@@ -33,6 +33,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-025](PX-2026-025-broker-neutral-recovery-requirements-and-acceptance-tests.md) | Broker-neutral recovery requirements and deterministic acceptance tests |
 | [PX-2026-026](PX-2026-026-provider-idempotency-and-compound-order-recovery.md) | Provider idempotency, request correlation and compound-order recovery audit |
 | [PX-2026-027](PX-2026-027-broker-observation-consistency-stream-recovery-and-trade-revisions.md) | Broker observation consistency, stream gaps and trade-revision semantics |
+| [PX-2026-028](PX-2026-028-portfolio-cash-ledger-charge-and-contract-note-reconciliation.md) | Portfolio, cash-ledger, charge and contract-note reconciliation |
 
 ## Scope and evidence policy
 
