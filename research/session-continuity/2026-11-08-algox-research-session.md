@@ -571,3 +571,28 @@ PX-025 now contains **162 normative requirements and 310 proposed acceptance sce
 - AT-281–AT-310 cover token namespace, current/next expiry, strike/option type, ISIN/index handling, unmatched rows, lot/tick/unit conflicts, float/timezone errors, alias collisions and transitions, expired aliases, corporate actions, venue, provider schema, stale masters and incomplete promotion.
 
 No provider file download, API call, parser, code change or order was performed.
+
+
+## 25. Market-data time semantics, feed integrity and historical contract continuity (2026-11-08)
+
+PX-2026-037 audits current market-data feed timestamp semantics, heartbeat/liveness, snapshot/reconnect behaviour and historical-candle/continuous-futures continuity across Kite, Upstox V3 and DhanHQ v2.
+
+### Provider findings
+
+- **Kite:** binary quote packet separates last-traded timestamp from exchange timestamp; the index packet has a different shorter structure. Prices are in paise with a currency scaling exception. It supports 3,000 instruments per socket and up to three sockets/API key; one-byte heartbeats are sent every couple of seconds when there is no data to stream.
+- **Upstox V3:** Protobuf feed starts with market status, then a current snapshot, then live updates. `ltpc.ltt` is last-trade time; `currentTs` is the timestamp of the received tick, while market-info `currentTs` is message-generation time. V3 subscription/connection limits are mode-specific; the legacy feed page is marked discontinued.
+- **DhanHQ v2:** little-endian binary packets; LTT is a 32-bit integer documented as Last Trade Time (EPOCH). The reviewed packet layout does not show a second per-message exchange timestamp field. Server ping is 10 seconds and the server closes after more than 40 seconds without pong.
+- A healthy heartbeat does not establish fresh per-instrument data. Last-trade age and book/depth observation freshness are different, especially for illiquid contracts.
+- Upstox V3 provides a startup status message, then a current snapshot and subsequent live updates. No reviewed broker feed documents a replay cursor that proves messages missed during a disconnect were replayed.
+- Upstox historical candle timestamp is documented as candle interval start. Dhan timestamps are epoch but candle start/end semantics were not explicit in the reviewed section. Kite samples use +0530 ISO timestamps but the full interval boundary contract is not explicit in the reviewed text.
+- Kite's continuous endpoint gives daily NFO/MCX futures candles across expired contracts, but it does not define a universal back-adjusted roll policy or provide intraday expired-token event replay.
+
+### Requirements and tests
+
+PX-025 now contains **178 normative requirements and 340 proposed acceptance scenarios**:
+- R-163–R-178 cover distinct time domains, raw/normalized timestamp, wall/monotonic clock, per-field semantics, candle interval meaning, heartbeat vs freshness, reconnect snapshot vs replay, event ordering, decoder/schema/scale provenance, history coverage, historical contract identity, explicit continuous-series methodology, no tick completeness from bars, pipeline drop observability, field/session-specific freshness and asynchronous cross-provider quotes.
+- AT-311–AT-340 cover timestamp distinctions, Kite index packet and scales, Upstox currentTs/LTT, Dhan binary LTT, heartbeat and illiquid instruments, stale/out-of-order/duplicate observations, reconnect gaps, queue overflow, decoder errors, clock jumps, candle boundary semantics, expired-token continuity, provider history limits and bar-vs-tick replay limits.
+
+All are proposed tests only. No feed subscription, historical data API request, decoder, tick store or backtest engine was executed.
+
+No credentials, broker API, market-feed connection, order, code implementation, paid service, PR or merge to `main` was used.
