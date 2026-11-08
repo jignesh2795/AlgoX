@@ -31,6 +31,7 @@ This directory records dated ecosystem findings and their architectural implicat
 | [PX-2026-023](PX-2026-023-nse-feed-protocol-and-deterministic-replay.md) | NSE feed protocol, historical order data and deterministic replay feasibility |
 | [PX-2026-024](PX-2026-024-broker-disconnect-order-recovery-and-reconciliation.md) | Broker disconnect, ambiguous order outcomes and reconciliation |
 | [PX-2026-025](PX-2026-025-broker-neutral-recovery-requirements-and-acceptance-tests.md) | Broker-neutral recovery requirements and deterministic acceptance tests |
+| [PX-2026-026](PX-2026-026-provider-idempotency-and-compound-order-recovery.md) | Provider idempotency, request correlation and compound-order recovery audit |
 
 ## Scope and evidence policy
 
