@@ -694,4 +694,79 @@ The following deterministic tests extend AT-001 through AT-075. Use synthetic co
 
 ### Latest requirements baseline status — PX-029
 
-PX-029 adds R-049 through R-061 and AT-076 through AT-100. The consolidated requirements baseline now contains **61 normative requirements (R-001–R-061) and 100 proposed acceptance scenarios (AT-001–AT-100)**. The new expiry/settlement scenarios are specified only; no test was executed and no settlement code was implemented.
+PX-029 adds R-049 through R-061 and AT-076 through AT-100. The consolidated requirements baseline now contains **76 normative requirements (R-001–R-076) and 130 proposed acceptance scenarios (AT-001–AT-130)**. The new expiry/settlement scenarios are specified only; no test was executed and no settlement code was implemented.
+
+## 16. Equity-derivatives margin calculation, collection and risk controls (2026-11-08)
+
+PX-2026-030 adds the source-derived margin requirements from NSE Clearing, SEBI and the Kite/Upstox/Dhan broker API surfaces. It distinguishes portfolio margin calculation, client collection, peak/EOD verification, actual collected collateral, member-level margin, shortfall and release.
+
+### Additional normative requirements
+
+**R-062 — Margin parameters are source-versioned and effective-dated.** Every margin calculation MUST retain the exact exchange/clearing parameter-set identity, source/reference file, effective timestamp/date, market snapshot and applicable contract-master version. A current SPAN/ELM rate MUST NOT be applied retrospectively to historical positions.
+
+**R-063 — Portfolio-based margin is not per-order isolation.** Margin calculation MUST account for all in-scope positions and eligible open orders of the same client, product and account. It MUST preserve per-client netting and the resulting member-level gross total separately. A standalone per-order estimate MUST NOT be represented as the client's complete portfolio margin unless the source calculation explicitly includes the relevant portfolio.
+
+**R-064 — Upfront collection includes applicable client net option premium.** For equity-derivatives trades on and after 1 February 2025, the upfront collection/verification requirement MUST include net options premium payable at client level in addition to IM and ELM, using the effective SEBI/exchange definition. Historical trades MUST use the rule effective on their date.
+
+**R-065 — BOD verification parameters differ from live clearing parameters.** The system MUST distinguish the fixed BOD parameters used for client upfront-margin verification/shortfall assessment from the refreshed intraday/EOD parameters used by Clearing Corporations for actual clearing obligations. It MUST NOT treat a BOD verification snapshot as the live clearing requirement or assume clearing requirements remain static during the day.
+
+**R-066 — No cross-client or client/proprietary margin set-off.** The margin core MUST net positions only within the permitted individual-client scope and MUST NOT offset one client's excess margin against another client's requirement. Proprietary positions MUST remain separate from client positions. Any cross-margin benefit MUST be traceable to the applicable approved framework, client and eligible position set.
+
+**R-067 — Margin components remain separately attributable.** SPAN/initial, ELM, net option premium, CCO, delivery, assignment, tender, additional/special, cross-margin benefit, collected collateral, utilization, shortfall and release MUST be represented separately. A single total may be derived, but the component inputs and source rules MUST remain auditable.
+
+**R-068 — Basket/hedge benefits are conditional and revocable.** A spread or hedge benefit MUST be calculated from the complete eligible portfolio using the effective exchange rules. Closing, expiry, exercise, corporate action or other loss of a hedge leg MUST trigger a fresh margin evaluation. The previous basket result MUST NOT be carried forward after its supporting position set changes.
+
+**R-069 — Expiry and delivery margin link to settlement lifecycle.** Delivery, tender and assignment margin MUST retain the expiry/settlement date, applicable contract family, delivery mode, assessment/release period and source rule. Margin must be recalculated when a contract enters the tender/delivery/assignment window. This requirement links to PX-029 physical-settlement obligations.
+
+**R-070 — CCO is distinct intraday and EOD evidence.** Intraday CCO MUST use the documented client-level closed-futures crystallized P&L and payable/receivable premium inputs. EOD CCO MUST preserve the additional futures MTM, options premium, option exercise/assignment and futures final-settlement inputs. The two calculations MUST NOT be collapsed into an unexplained daily total.
+
+**R-071 — F&O collection deadline is segment-specific.** For the reviewed NSE F&O member FAQ, SPAN/ELM MUST be collected before trade; delivery margin and CCO MUST be collected by T+1 day. The cash-segment settlement-day change in SEBI Circular 2025/57 MUST NOT be generalized into an F&O collection rule. The exact current effective rule and trading/settlement calendar must be checked for the relevant segment and date.
+
+**R-072 — Required margin and actual collected margin are separate records.** The system MUST retain the amount required, amount available, amount actually collected/blocked, amount reported, collection timestamp, collection instrument/source and any shortfall separately. It MUST NOT derive “collected” from “required” or a margin calculator response.
+
+**R-073 — Peak-margin snapshots are preserved with purpose and parameters.** Every intraday snapshot MUST retain its capture window/time, client scope, reported component values and verification parameter set. The system MUST preserve EOD and peak-across-snapshot values separately. Snapshot count/selection and reporting rules must be date-versioned.
+
+**R-074 — Margin release follows confirmed obligation settlement.** Delivery/CCO/assignment/other margin MUST remain allocated until the effective release condition has been met and confirmed by authoritative settlement/clearing/broker evidence. Order cancellation, position flattening, early-pay-in initiation or a broker display change alone MUST NOT prove the corresponding margin release.
+
+**R-075 — Collateral eligibility and member-level liquidity remain distinct.** Collateral type, ownership/client allocation, encumbrance, applicable haircut, eligible value and liquid-cash classification MUST be preserved independently. Clearing-member deposit composition requirements (including the published 50% cash-component rule) MUST NOT be misapplied as a universal client cash percentage. Client collateral segregation/eligibility must follow its own effective rules.
+
+**R-076 — Margin shortfall and reporting conflict fail closed.** An unmet upfront requirement, a T+1 shortfall, unavailable collateral, missing client allocation, stale calculation or mismatch between actual collections and reported collections MUST remain an explicit risk exception. The system MUST NOT permit a new position on the assumption that an uncollected or unverified amount is available, and MUST NOT fabricate a collection record to satisfy reporting.
+
+### Additional deterministic acceptance scenarios
+
+The following use synthetic portfolio, parameter, collection and fake clearing/broker fixtures only.
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-101 | SPAN/ELM input parameter set is missing or stale | Margin result UNKNOWN; no zero/default margin or order clearance |
+| AT-102 | Existing same-client positions and open orders affect a new order's SPAN | Compute against the complete supplied portfolio context; record exactly which positions/orders were included |
+| AT-103 | A two-leg spread receives a documented eligible hedge benefit | Record gross leg margins, eligible benefit and net requirement separately with the rule version |
+| AT-104 | One hedge leg is closed, expired or becomes ineligible | Recompute the remaining portfolio margin; revoke unsupported prior hedge benefit |
+| AT-105 | Client submits an order without upfront SPAN/IM and ELM collected | Block/reject pre-trade authorization; do not rely on post-trade collection |
+| AT-106 | Equity-derivatives option buyer has net premium payable on/after 1 February 2025 | Include client-level net option premium in upfront collection and verification |
+| AT-107 | Multiple option trades create offsetting premiums within one client | Calculate net payable premium at the client scope under the effective rule; do not sum all gross buy premiums |
+| AT-108 | Client verification snapshot uses fixed BOD parameters while Clearing Corporation updates live parameters intraday | Preserve both values with purpose; do not label them contradictory or substitute one for the other |
+| AT-109 | Four or more randomly selected intraday snapshots and an EOD margin report are supplied | Preserve each timestamped snapshot and independently derive peak and EOD verification requirements |
+| AT-110 | Two clients have opposite/surplus margin positions | Do not set off one client's surplus against the other's requirement |
+| AT-111 | Proprietary positions hedge client positions at member level | Keep proprietary and client risk/offset ledgers separate; no proprietary-to-client set-off |
+| AT-112 | Basket margin estimate changes after a position or open order is added | Recalculate complete portfolio margin; preserve request context and before/after deltas |
+| AT-113 | Kite margin API order response considers existing positions/open orders and basket API evaluates a spread | Preserve broker estimate and input scope; do not treat it as Clearing Corporation or collection evidence |
+| AT-114 | Upstox margin response contains SPAN, ELM/exposure, net buy premium and tender-margin fields | Preserve each field separately; apply tender margin only according to its provider/effective contract definition |
+| AT-115 | Dhan multi-order margin request includes existing positions and open orders | Record inclusion flags and complete scrip list; do not compare with a calculation that omits these inputs |
+| AT-116 | Contract approaches expiry and delivery/tender/assignment margin becomes applicable | Recompute with date-effective expiry rules and link margin to settlement obligation |
+| AT-117 | F&O upfront and T+1 collection timelines are evaluated | Require SPAN/ELM before trade; enforce current F&O T+1 collection for delivery/CCO; do not apply cash-segment 2025/57 settlement-day rule to F&O |
+| AT-118 | Cash-segment non-upfront margin falls under SEBI Circular 2025/57 | Use settlement-day rule for the cash segment only; retain segment scope in the rule reference |
+| AT-119 | Intraday CCO contains premium payable and crystallized futures loss | Compute/record intraday payable CCO at client level from the two documented inputs |
+| AT-120 | EOD CCO includes futures MTM, premiums, expired option exercise/assignment and futures final settlement | Reconcile each component before classifying EOD CCO payable/receivable |
+| AT-121 | Short index option due to expire incurs additional expiry-day ELM under the effective parameter set | Apply the dated rule to all eligible open and newly initiated due-to-expire positions; never hard-code it across all historical dates |
+| AT-122 | Member reports required margin as collected but collection ledger has no matching client cash/collateral evidence | FALSE_COLLECTION_REPORTING_CONFLICT; block PASS and preserve the missing/short collection evidence |
+| AT-123 | Approved collateral is present but after haircut/encumbrance its eligible value is below requirement | Calculate eligible value using dated haircut/eligibility; record shortfall rather than nominal face value |
+| AT-124 | Delivery/CCO margin remains blocked after order cancellation but settlement is not complete | Keep margin allocated until the documented settlement/release condition is evidenced |
+| AT-125 | Clearing member satisfies its 50% cash-component effective-deposit rule using CM-level deposits | Validate at CM level only; do not translate it into a blanket 50% retail-client cash requirement |
+| AT-126 | SPAN parameters update intraday while a broker calculator returns a value from an earlier timestamp | Store both parameter timestamps; classify stale estimate and recalculate before risk clearance |
+| AT-127 | Current published ELM rates differ from the rate applicable to a historical trade date | Use the historical effective parameter file; never back-apply the current website table |
+| AT-128 | Expiry-day calendar-spread benefit is withdrawn under the applicable rule | Recalculate margin without the expired benefit and preserve the triggering expiry/rule evidence |
+| AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
+| AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
+
+PX-025 now contains **76 normative requirements (R-001–R-076) and 130 proposed acceptance scenarios (AT-001–AT-130)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
