@@ -769,7 +769,7 @@ The following use synthetic portfolio, parameter, collection and fake clearing/b
 | AT-129 | A margin shortfall is detected but the collection/reporting API is unavailable | Keep shortfall unresolved and fail closed; do not assume collection or emit a synthetic success |
 | AT-130 | Settlement is completed and clearing/broker evidence confirms margin release | Release only the confirmed amount; retain the release event, linked obligation, timestamp and source reference |
 
-PX-025 now contains **162 normative requirements (R-001–R-162) and 310 proposed acceptance scenarios (AT-001–AT-310)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
+PX-025 now contains **177 normative requirements (R-001–R-177) and 340 proposed acceptance scenarios (AT-001–AT-340)**. The new margin scenarios are proposed for future fake-provider/fake-clearing tests only; no test was executed.
 
 
 ## 17. Clearing margin reports, collateral short allocation and PRISM enforcement (2026-11-08)
@@ -1224,3 +1224,76 @@ PX-025 now contains **162 normative requirements (R-001–R-162) and 310 propose
 - Kite's daily CSV master includes token/contract attributes but its `last_price` is not real-time; its docs warn instrument tokens can be reused after derivative expiry.
 - Upstox recommends JSON, marks CSV as deprecated, identifies `instrument_key` as unique for each instrument, warns exchange_token may be reused, and provides separate BOD/suspended/MTF/MIS files.
 - Dhan publishes compact/detailed/segmentwise master surfaces; the detailed file includes underlying security ID and derivative attributes. A global all-time uniqueness guarantee for raw Dhan securityId was not established.
+
+## 23. Market-data identity, timestamp semantics, freshness and historical continuity (2026-11-08)
+
+PX-2026-037 reviews official Kite, Upstox V3 and DhanHQ v2 feed/historical documentation. See [PX-2026-037 — Market-data identity, timestamp semantics, freshness and continuity](PX-2026-037-market-data-identity-timestamps-freshness-and-continuity.md).
+
+### Additional normative requirements
+
+**R-163 — Market observations retain distinct timestamp semantics.** Every market-data observation MUST preserve exchange event/quote time, last-trade time, provider message time, local receive time, persistence time and candle bucket/session time as separate optional fields. Missing provider timestamps MUST remain null/UNKNOWN; no timestamp may be copied into another semantic field.
+
+**R-164 — Timestamp units and raw values are preserved.** The adapter MUST retain raw timestamp value, unit, timezone/offset, schema version and normalized UTC instant. Epoch seconds, epoch milliseconds, ISO timestamps and protocol integers MUST be parsed by an explicit provider/version mapping; ambiguous units or invalid/future values MUST return INVALID/UNKNOWN.
+
+**R-165 — Trade freshness and quote/depth freshness are separate.** The system MUST calculate last-trade age independently from quote/depth update age and transport liveness. An old LTT MUST NOT automatically invalidate a demonstrably refreshed quote/depth packet; a recent packet receive time MUST NOT prove quote freshness where the provider has no documented quote-update timestamp.
+
+**R-166 — Local receipt and monotonic timing are captured.** Every received market-data message MUST capture local UTC receipt and monotonic receipt time, connection/session ID and ingestion/persistence time. Monotonic time MUST be used for local elapsed/queue-latency measurement; it MUST NOT be represented as exchange or provider time.
+
+**R-167 — Provider timestamp semantics are versioned and explicit.** Kite quote timestamp and last_trade_time, Kite WebSocket LTT/exchange timestamp, Upstox ltpc.ltt/currentTs, and Dhan LTT MUST map to their documented semantic fields. An undocumented provider timestamp MUST NOT be assumed to be exchange event time.
+
+**R-168 — Instrument/contract identity accompanies every market observation.** Every quote, trade tick, depth update, OI update and candle MUST be linked to the canonical instrument/contract ID and the exact provider alias/source version used at receipt. A token/key change MUST not cause historical observations to be remapped to a different contract.
+
+**R-169 — Provider packet variants are parsed by exact schema.** Kite index and tradable-instrument packets, Upstox market_info/snapshot/live messages and Dhan ticker/quote/OI/full packets MUST use their distinct packet schemas and versions. Unknown packet lengths, codes or protobuf/binary schema revisions MUST be quarantined rather than best-effort parsed as another packet type.
+
+**R-170 — Market status and exchange session calendar remain separate evidence.** Provider segment status messages MUST be retained with provider time and source. Exchange trading calendar/holiday/session schedule MUST be maintained independently. A provider status message or local wall clock alone MUST NOT establish the complete official exchange session state.
+
+**R-171 — Feed liveness does not establish event completeness.** Heartbeat/ping/pong, an open WebSocket or a successful reconnect MUST establish at most transport/session liveness. It MUST NOT prove that every tick was received or that missed events were replayed without a documented sequence/replay contract.
+
+**R-172 — Disconnects and subscription gaps create explicit data-gap states.** Connection loss, timeout, provider disconnect reason, subscription rejection, capacity overflow, decoder error and local queue overflow MUST create time-bounded gap records scoped to the affected provider/connection/instruments. The event history MUST remain UNKNOWN until reconciled; no missing tick may be fabricated.
+
+**R-173 — Reconnect snapshots and historical backfills do not recreate tick history.** After reconnect, the system SHOULD obtain a fresh state snapshot and historical bar backfill where supported, but it MUST distinguish restored current-state/bar completeness from original tick/depth event completeness. OHLC bars MUST NOT be expanded into invented ticks or order-book events.
+
+**R-174 — Freshness thresholds are use-case and market-state specific.** Trade, quote, depth, OI, Greeks and candle freshness MUST be evaluated separately using a versioned policy for provider, segment, instrument type, market state, activity/liquidity and decision horizon. A universal stale threshold MUST NOT be assumed valid for every instrument/session.
+
+**R-175 — Historical candles preserve contract, interval and calendar identity.** Every historical bar MUST retain canonical contract ID, provider alias, interval definition, exchange session date, bucket start/end, timezone/calendar version, raw source timestamp and adjustment policy. Bars from different contracts or incompatible interval boundaries MUST NOT be deduplicated by timestamp alone.
+
+**R-176 — Continuous/adjusted series are derived views with explicit lineage.** Any rolled futures, adjusted equity or continuous derivative series MUST retain original contract-level bars and identify roll rule, old/new contracts, adjustment factor/method, effective date and source data. Continuous series MUST NOT replace the identity of the actual tradable contract.
+
+**R-177 — Missing bars and source conflicts are not silently synthesized or merged.** The system MUST distinguish exchange holiday/session closed, no trade, no subscription, provider gap, local loss, incomplete historical response and contract non-existence. Missing bars MUST NOT default to flat OHLC/zero volume; conflicting provider observations MUST remain separately attributable unless an explicit versioned aggregation policy reconciles them.
+
+### Additional deterministic acceptance scenarios
+
+| Test ID | Scenario | Required observable result |
+|---|---|---|
+| AT-311 | Kite REST quote has different timestamp and last_trade_time | Store quote-packet exchange time and LTT separately |
+| AT-312 | Kite WebSocket quote packet contains LTT and exchange timestamp | Parse both fields using the exact packet offsets; do not collapse them |
+| AT-313 | Kite index packet arrives with its shorter schema | Parse index packet separately; do not expect tradable-instrument depth/LTT fields |
+| AT-314 | Upstox market_info message arrives before snapshot/live ticks | Record segment status and provider currentTs before accepting subsequent feed state |
+| AT-315 | Upstox snapshot follows market_info | Mark initial state as snapshot, not a replayed event history |
+| AT-316 | Upstox ltpc.ltt is older than currentTs | Preserve last-trade and provider received-tick times separately |
+| AT-317 | Upstox currentTs exists but no exchange timestamp is documented | Do not populate exchange_event_time from currentTs; leave it UNKNOWN |
+| AT-318 | Dhan quote/full packet supplies LTT but no separate quote timestamp | Store LTT and local receive time; quote-update age remains UNKNOWN unless later schema evidence supports it |
+| AT-319 | Dhan ping/pong continues but no instrument packets arrive | Transport liveness PASS does not imply market-data coverage/freshness |
+| AT-320 | Dhan misses pong beyond documented timeout and disconnect packet reports reason | Create scoped transport gap with provider reason and time interval |
+| AT-321 | LTT is old but quote/depth update time is recent and documented | Trade freshness may be STALE while quote/depth freshness remains FRESH |
+| AT-322 | LTT is old and provider exposes no quote-update timestamp | Do not claim current depth freshness solely from local receipt time |
+| AT-323 | A liquid instrument has an update gap while exchange segment is NORMAL_OPEN | Mark feed/data gap or stale state; do not convert it to session-inactive |
+| AT-324 | Instrument receives no trades during a quiet interval but provider heartbeat is alive | Distinguish NO_TRADE_OBSERVED from TRANSPORT_STALE or NO_SUBSCRIPTION |
+| AT-325 | Upstox segment is PRE_OPEN/CLOSED/other status while local clock suggests normal hours | Preserve provider market-status evidence and reconcile with official exchange session calendar |
+| AT-326 | Local UTC clock is offset beyond configured skew tolerance | Mark local latency/event-time comparison UNKNOWN; do not rewrite provider timestamps |
+| AT-327 | Timestamp parser receives epoch seconds where milliseconds are expected | Detect unit/range mismatch and quarantine rather than silently produce a wrong date |
+| AT-328 | Timestamp falls outside session/date beyond allowed skew | Mark invalid/unknown and preserve raw payload; do not shift to nearest session |
+| AT-329 | Reconnect occurs after a 30-second stream disconnect with no replay cursor | Record suspected gap and fresh snapshot; tick-history completeness remains UNKNOWN |
+| AT-330 | Historical candle backfill covers a disconnected 1-minute interval | Mark bar-level backfill recovered but original tick/depth stream still incomplete |
+| AT-331 | Kite continuous=1 is requested for expired NFO futures at minute interval | Do not assume expired intraday continuous history is supported; use only documented daily scope or specific archived contracts |
+| AT-332 | Kite expired contract token was not cached before expiry | Mark direct expired-token retrieval unavailable/UNKNOWN; do not infer token from the current master |
+| AT-333 | Dhan intraday history request exceeds 90-day window | Split into compliant windows and preserve each range; no dropped date gap |
+| AT-334 | Dhan daily query uses non-inclusive toDate | Respect exclusive end boundary and verify returned session dates |
+| AT-335 | Historical bars from two providers have same timestamp but different bucket boundary/policy | Retain source-specific bars; do not deduplicate solely by timestamp |
+| AT-336 | Continuous futures series rolls to the next contract | Preserve old/new contract IDs, roll date, rule and any adjustment factor; raw contract bars remain available |
+| AT-337 | Exchange holiday has no candle for an instrument | Classify session closed/holiday; do not synthesize a zero-volume flat candle |
+| AT-338 | Market is open but historical response omits one interval | Mark source/history gap; do not interpret missing interval as no trade without source evidence |
+| AT-339 | Two providers report different LTP/depth at nearby but non-identical timestamps | Preserve both values and timestamps; no last-arrival-wins composite quote |
+| AT-340 | Provider alias/token changes while canonical contract remains the same | Link observations through the effective-dated PX-036 alias crosswalk; historical references keep the prior alias |
+
+PX-025 now contains **177 normative requirements (R-001–R-177) and 340 proposed acceptance scenarios (AT-001–AT-340)**. These are proposed deterministic tests only; no live feed or historical API was queried.
